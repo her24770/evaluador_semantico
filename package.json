@@ -1,0 +1,16 @@
+{
+  "name": "evaluador-semantico",
+  "version": "0.1.0",
+  "description": "Evaluador semántico de lógica de primer orden (MM3032 Lógica Matemática, UVG)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test tests/**/*.test.js"
+  },
+  "devDependencies": {
+    "vite": "8.3.7"
+  }
+}
