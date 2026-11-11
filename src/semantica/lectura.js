@@ -62,13 +62,16 @@ export function leerDominio(texto) {
  * Lee las tuplas de una relación, separadas por comas: '(1, 3), (2, 1)'.
  * Si la aridad es 1 también acepta elementos sueltos: '1, 2' es lo mismo que '(1), (2)'.
  * Un texto vacío da cero tuplas (Parte 2 decide si eso es un error).
+ * La etiqueta va al inicio de cada mensaje de error, p. ej. 'Relación R'.
  *   leerTuplas('(1, 3), (2, 1)', 2) → { errores: [], tuplas: [['1', '3'], ['2', '1']] }
  *
  * @param {string} texto
  * @param {number} aridad
+ * @param {string} [etiqueta]
  * @returns {{errores: ErrorLogico[], tuplas: string[][]}}
  */
-export function leerTuplas(texto, aridad) {
+export function leerTuplas(texto, aridad, etiqueta = 'Relación') {
+  const fallo = (mensaje, pos) => ({ errores: [new ErrorLogico('relación', `${etiqueta}: ${mensaje}`, pos)], tuplas: [] });
   const contenido = quitarLlaves(String(texto ?? ''));
   if (contenido.trim() === '') return { errores: [], tuplas: [] };
 
@@ -77,7 +80,7 @@ export function leerTuplas(texto, aridad) {
     const tuplas = [];
     for (const crudo of contenido.split(',')) {
       const problema = problemaDeElemento(crudo.trim());
-      if (problema) return fallo(`Relación: ${problema}.`);
+      if (problema) return fallo(`${problema}.`);
       tuplas.push([crudo.trim()]);
     }
     return { errores: [], tuplas };
@@ -91,19 +94,19 @@ export function leerTuplas(texto, aridad) {
   while (true) {
     saltarEspacios();
     if (contenido[i] !== '(') {
-      return fallo(`Relación: se esperaba "(" para empezar una tupla en la posición ${i + 1}.`, i);
+      return fallo(`se esperaba "(" para empezar una tupla en la posición ${i + 1}.`, i);
     }
     const inicio = i;
     const cierre = contenido.indexOf(')', i + 1);
     const otraApertura = contenido.indexOf('(', i + 1);
     if (cierre === -1 || (otraApertura !== -1 && otraApertura < cierre)) {
-      return fallo(`Relación: la tupla que empieza en la posición ${inicio + 1} no se cierra con ")".`, inicio);
+      return fallo(`la tupla que empieza en la posición ${inicio + 1} no se cierra con ")".`, inicio);
     }
 
     const tupla = contenido.slice(inicio + 1, cierre).split(',').map((e) => e.trim());
     for (const elemento of tupla) {
       const problema = problemaDeElemento(elemento);
-      if (problema) return fallo(`Relación: en la tupla de la posición ${inicio + 1}, ${problema}.`, inicio);
+      if (problema) return fallo(`en la tupla de la posición ${inicio + 1}, ${problema}.`, inicio);
     }
     tuplas.push(tupla);
 
@@ -111,17 +114,12 @@ export function leerTuplas(texto, aridad) {
     saltarEspacios();
     if (i >= contenido.length) return { errores: [], tuplas };
     if (contenido[i] !== ',') {
-      return fallo(`Relación: falta una coma entre tuplas en la posición ${i + 1}.`, i);
+      return fallo(`falta una coma entre tuplas en la posición ${i + 1}.`, i);
     }
     i++;
     saltarEspacios();
-    if (i >= contenido.length) return fallo('Relación: sobra la coma del final.', i - 1);
+    if (i >= contenido.length) return fallo('sobra la coma del final.', i - 1);
   }
-}
-
-/** Respuesta de leerTuplas cuando el texto está mal escrito: un error y ninguna tupla. */
-function fallo(mensaje, pos) {
-  return { errores: [new ErrorLogico('relación', mensaje, pos)], tuplas: [] };
 }
 
 /**
