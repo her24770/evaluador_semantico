@@ -144,7 +144,190 @@ test('el nodo tiene exactamente los campos del contrato (CONTRATO.md §4)', () =
   });
 });
 
-test('∀ y ∃ todavía no están (parte 5b)', () => {
-  assert.throws(() => evaluarTexto(tema11, '∀x P(x, x)', {}), /Falta implementar ∀/);
-  assert.throws(() => evaluarTexto(tema11, '∃x P(x, x)', {}), /Falta implementar ∃/);
+// ─── Cuantificadores (parte 5b) ───────────────────────────────────────────
+
+// Tema 10, diap. 5: 𝒟 = {1, 2, 3}, Pᴵ = {1, 2}, Rᴵ = {(1, 3), (2, 1), (3, 2)}.
+const tema10d5 = preparar(
+  { funciones: [], predicados: [{ nombre: 'P', aridad: 1 }, { nombre: 'R', aridad: 2 }] },
+  { dominioTexto: '{1, 2, 3}', relaciones: { P: '1, 2', R: '(1, 3), (2, 1), (3, 2)' } },
+);
+
+/** Interpretación con 𝒟 = {1, 2} y P, Q unarios (tema 11, diap. 10 y 13). */
+const conPyQ = (P, Q) => preparar(
+  { funciones: [], predicados: [{ nombre: 'P', aridad: 1 }, { nombre: 'Q', aridad: 1 }] },
+  { dominioTexto: '1, 2', relaciones: { P, Q } },
+);
+
+/** Revisa que el nodo tenga SOLO el campo especial que le toca (testigo, contraejemplo o completa). */
+const soloCampo = (nodo, campo) => {
+  for (const c of ['testigo', 'contraejemplo', 'completa']) {
+    assert.equal(Object.hasOwn(nodo, c), c === campo, `campo ${c}`);
+  }
+};
+
+test('tema 10, diap. 5: ∀x P(x) es F con contraejemplo x ↦ 3', () => {
+  const r = evaluarTexto(tema10d5, '∀x P(x)', {});
+  assert.equal(r.valor, false);
+  assert.equal(r.regla, '∀');
+  soloCampo(r, 'contraejemplo');
+  assert.deepEqual(r.contraejemplo, { variable: 'x', elemento: '3' });
+  assert.equal(r.razon, 'Contraejemplo: con x ↦ 3, P(x) es F');
+  // Solo el caso que falla, con la variante en el entorno.
+  assert.equal(r.hijos.length, 1);
+  assert.equal(r.hijos[0].entorno, '[x ↦ 3]');
+  assert.equal(r.hijos[0].valor, false);
+});
+
+test('tema 10, diap. 5: ∀x ∃y R(x, y) es V, completa, con testigos 1→3, 2→1, 3→2', () => {
+  const r = evaluarTexto(tema10d5, '∀x ∃y R(x, y)', {});
+  assert.equal(r.valor, true);
+  soloCampo(r, 'completa');
+  assert.equal(r.completa, true);
+  assert.equal(r.razon, 'Comprobación completa: ∃y R(x, y) es V para x ↦ 1, 2 y 3');
+  // Un hijo por cada elemento de 𝒟, en orden, y cada uno con su testigo.
+  assert.equal(r.hijos.length, 3);
+  assert.deepEqual(r.hijos.map((h) => h.entorno), ['[x ↦ 1]', '[x ↦ 2]', '[x ↦ 3]']);
+  assert.deepEqual(r.hijos.map((h) => h.testigo.elemento), ['3', '1', '2']);
+  r.hijos.forEach((h) => {
+    soloCampo(h, 'testigo');
+    assert.equal(h.hijos.length, 1);
+  });
+  assert.equal(r.hijos[0].hijos[0].entorno, '[x ↦ 1, y ↦ 3]');
+});
+
+test('tema 10, diap. 5: ∀x ∀y (P(x) → R(x, y)) es F con x ↦ 1 y, dentro, y ↦ 1', () => {
+  const r = evaluarTexto(tema10d5, '∀x ∀y (P(x) → R(x, y))', {});
+  assert.equal(r.valor, false);
+  soloCampo(r, 'contraejemplo');
+  assert.deepEqual(r.contraejemplo, { variable: 'x', elemento: '1' });
+  assert.equal(r.hijos.length, 1);
+  const dentro = r.hijos[0];
+  soloCampo(dentro, 'contraejemplo');
+  assert.deepEqual(dentro.contraejemplo, { variable: 'y', elemento: '1' });
+  assert.equal(dentro.hijos.length, 1);
+  // P(1) es V y R(1, 1) es F: V → F.
+  assert.equal(dentro.hijos[0].entorno, '[x ↦ 1, y ↦ 1]');
+  assert.equal(dentro.hijos[0].razon, 'Es falsa porque el lado izquierdo es V y el derecho es F');
+});
+
+test('tema 10, diap. 7: ∃y Q(i, y) es V con testigo y ↦ a (nodo completo)', () => {
+  const r = evaluarTexto(tema10, '∃y Q(i, y)', {});
+  assert.deepEqual(r, {
+    formula: '∃y Q(i, y)',
+    valor: true,
+    regla: '∃',
+    razon: 'Testigo: con y ↦ a, Q(i, y) es V',
+    entorno: '[]',
+    hijos: [{
+      formula: 'Q(i, y)', valor: true, regla: 'atómica',
+      razon: 'Q(i, y) con y ↦ a, i = a: (a, a) ∈ Qᴵ', entorno: '[y ↦ a]', hijos: [],
+    }],
+    testigo: { variable: 'y', elemento: 'a' },
+  });
+});
+
+test('tema 10, diap. 7: ∀x ∀y ∀z ((Q(x, y) ∧ Q(x, z)) → y = z) es F con x ↦ a, y ↦ a, z ↦ b', () => {
+  const r = evaluarTexto(tema10, '∀x ∀y ∀z ((Q(x, y) ∧ Q(x, z)) → y = z)', {});
+  assert.equal(r.valor, false);
+  // Bajamos por los tres ∀: cada uno con un solo hijo y su contraejemplo.
+  const casos = [];
+  let n = r;
+  for (let k = 0; k < 3; k++) {
+    soloCampo(n, 'contraejemplo');
+    assert.equal(n.hijos.length, 1);
+    casos.push(n.contraejemplo);
+    n = n.hijos[0];
+  }
+  assert.deepEqual(casos, [
+    { variable: 'x', elemento: 'a' }, { variable: 'y', elemento: 'a' }, { variable: 'z', elemento: 'b' },
+  ]);
+  assert.equal(n.entorno, '[x ↦ a, y ↦ a, z ↦ b]');
+  assert.equal(n.valor, false);
+});
+
+test('tema 10, diap. 7: ∀x ∃y Q(x, y) es V, completa', () => {
+  const r = evaluarTexto(tema10, '∀x ∃y Q(x, y)', {});
+  assert.equal(r.valor, true);
+  soloCampo(r, 'completa');
+  assert.equal(r.hijos.length, 3);
+  // Primer testigo de cada x: a → a, b → c, c → c.
+  assert.deepEqual(r.hijos.map((h) => h.testigo.elemento), ['a', 'c', 'c']);
+});
+
+test('tema 11, diap. 8c: ∃x ∀y P(x, y) es F, completa, y cada x falla con y ↦ 0', () => {
+  const r = evaluarTexto(tema11, '∃x ∀y P(x, y)', {});
+  assert.equal(r.valor, false);
+  soloCampo(r, 'completa');
+  assert.equal(r.razon, 'Comprobación completa: ∀y P(x, y) es F para x ↦ 0, 1 y 2');
+  assert.equal(r.hijos.length, 3);
+  r.hijos.forEach((h) => {
+    soloCampo(h, 'contraejemplo');
+    assert.deepEqual(h.contraejemplo, { variable: 'y', elemento: '0' });
+    assert.equal(h.hijos.length, 1);
+  });
+});
+
+test('tema 11, diap. 10: ∀x P(x) → ∀x Q(x) es V pero ∀x (P(x) → Q(x)) es F', () => {
+  // 𝒟 = {1, 2}, Pᴵ = {1}, Qᴵ = {2}: no hay implicación semántica.
+  const datos = conPyQ('1', '2');
+
+  const premisa = evaluarTexto(datos, '∀x P(x) → ∀x Q(x)', {});
+  assert.equal(premisa.valor, true);
+  assert.equal(premisa.razon, 'Es verdadera porque el lado izquierdo es F');
+  // Los dos ∀ fallan: contraejemplos x ↦ 2 (P) y x ↦ 1 (Q).
+  assert.deepEqual(premisa.hijos.map((h) => h.contraejemplo.elemento), ['2', '1']);
+
+  const conclusion = evaluarTexto(datos, '∀x (P(x) → Q(x))', {});
+  assert.equal(conclusion.valor, false);
+  soloCampo(conclusion, 'contraejemplo');
+  assert.deepEqual(conclusion.contraejemplo, { variable: 'x', elemento: '1' });
+  assert.equal(conclusion.hijos.length, 1);
+});
+
+test('tema 11, diap. 13b: ∀x (P(x) ∨ Q(x)) → (∀x P(x) ∨ ∀x Q(x)) es F', () => {
+  const r = evaluarTexto(conPyQ('1', '2'), '∀x (P(x) ∨ Q(x)) → (∀x P(x) ∨ ∀x Q(x))', {});
+  assert.equal(r.valor, false);
+  const [izq, der] = r.hijos;
+  assert.equal(izq.valor, true);
+  soloCampo(izq, 'completa');
+  assert.equal(izq.hijos.length, 2);
+  assert.equal(der.valor, false);
+});
+
+test('tema 11, diap. 13a: es V en todas las interpretaciones con 𝒟 = {1, 2}', () => {
+  const formula = '(∀x P(x) → ∃y Q(y)) → ∀x ∃y (P(x) → Q(y))';
+  const subconjuntos = ['1', '2', '1, 2']; // las relaciones vacías no se permiten
+  for (const P of subconjuntos) {
+    for (const Q of subconjuntos) {
+      assert.equal(evaluarTexto(conPyQ(P, Q), formula, {}).valor, true, `P = {${P}}, Q = {${Q}}`);
+    }
+  }
+  // Una Q vacía no llega a evaluarse: da error de relación.
+  const { firma } = validarLenguaje({ funciones: [], predicados: [{ nombre: 'P', aridad: 1 }, { nombre: 'Q', aridad: 1 }] });
+  const r = validarInterpretacion(firma, { dominioTexto: '1, 2', relaciones: { P: '1', Q: '' } });
+  assert.equal(r.errores.length, 1);
+  assert.equal(r.errores[0].categoria, 'relación');
+});
+
+test('variable libre y ligada con el mismo nombre: P(x) ∧ ∃x ¬P(x) con x ↦ 1', () => {
+  const r = evaluarTexto(tema10d5, 'P(x) ∧ ∃x ¬P(x)', { x: '1' });
+  assert.equal(r.valor, true);
+  const [libre, existe] = r.hijos;
+  // La x libre usa el entorno: x ↦ 1.
+  assert.equal(libre.entorno, '[x ↦ 1]');
+  assert.equal(libre.valor, true);
+  // Dentro del ∃ se usa la variante l[x ↦ a]; el testigo es 3.
+  soloCampo(existe, 'testigo');
+  assert.deepEqual(existe.testigo, { variable: 'x', elemento: '3' });
+  assert.equal(existe.hijos.length, 1);
+  assert.equal(existe.hijos[0].entorno, '[x ↦ 3]');
+});
+
+test('los nodos sin cuantificador no tienen testigo, contraejemplo ni completa', () => {
+  const r = evaluarTexto(tema11, 'P(x, y) ∧ ¬R(x)', { x: '0', y: '2' });
+  const revisar = (n) => {
+    soloCampo(n, null);
+    n.hijos.forEach(revisar);
+  };
+  revisar(r);
 });

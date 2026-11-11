@@ -5,12 +5,12 @@
  * que la interfaz dibuja como un árbol. Cada nodo dice qué regla se usó, por qué
  * dio ese valor y trae en "hijos" los nodos de sus partes.
  *
- * Parte 5a: casos atómicos, igualdad y conectivos. ∀ y ∃ se hacen en la 5b.
+ * Casos: atómica, igualdad, conectivos (¬ ∧ ∨ → ↔) y cuantificadores (∀ ∃).
  */
 import { ErrorLogico, aCadena, terminoACadena } from '../sintaxis/index.js';
 import { claveDeTupla } from './lectura.js';
 import { valorDeTermino } from './terminos.js';
-import { entornoACadena } from './entorno.js';
+import { entornoACadena, variante } from './entorno.js';
 
 const VF = (valor) => (valor ? 'V' : 'F');
 const VERDADERA_O_FALSA = (valor) => (valor ? 'Es verdadera' : 'Es falsa');
@@ -22,16 +22,20 @@ const VERDADERA_O_FALSA = (valor) => (valor ? 'Es verdadera' : 'Es falsa');
  * @param {object} ast  fórmula (AST de analizar)
  * @param {{dominio: string[], funciones: Map, relaciones: Map<string, Set<string>>}} interpretacion  ya validada
  * @param {Object<string, string>} entorno  ya validado (un valor para cada variable libre)
- * @returns {{formula: string, valor: boolean, regla: string, razon: string, entorno: string, hijos: object[]}}
+ * @returns {{formula: string, valor: boolean, regla: string, razon: string, entorno: string, hijos: object[],
+ *            testigo?: {variable: string, elemento: string}, contraejemplo?: {variable: string, elemento: string},
+ *            completa?: true}}
  */
 export function evaluar(ast, interpretacion, entorno) {
-  const nodo = (valor, regla, razon, hijos = []) => ({
+  // "extra" lleva testigo, contraejemplo o completa, solo en los nodos de ∀ y ∃ que les toca.
+  const nodo = (valor, regla, razon, hijos = [], extra = {}) => ({
     formula: aCadena(ast),
     valor,
     regla,
     razon,
     entorno: entornoACadena(entorno),
     hijos,
+    ...extra,
   });
   const sub = (f) => evaluar(f, interpretacion, entorno);
 
@@ -73,8 +77,35 @@ export function evaluar(ast, interpretacion, entorno) {
       return nodo(valor, regla, `${VERDADERA_O_FALSA(valor)} porque ${porque}`, [izq, der]);
     }
 
-    case 'paratodo': case 'existe':
-      throw new Error(`Falta implementar ${ast.tipo === 'paratodo' ? '∀' : '∃'} en el evaluador (parte 5b).`);
+    case 'paratodo': case 'existe': {
+      // ℐ ⊨ₗ ∀x φ  si ℐ ⊨_{l[x ↦ a]} φ para TODA a ∈ 𝒟.
+      // ℐ ⊨ₗ ∃x φ  si ℐ ⊨_{l[x ↦ a]} φ para ALGUNA a ∈ 𝒟.
+      // Se prueba cada a de 𝒟 en el orden en que la escribió el usuario.
+      const x = ast.variable;
+      const esParaTodo = ast.tipo === 'paratodo';
+      const regla = esParaTodo ? '∀' : '∃';
+      const cuerpo = aCadena(ast.cuerpo);
+      // ∀ busca un caso F (contraejemplo); ∃ busca un caso V (testigo).
+      const buscado = !esParaTodo;
+
+      const hijos = [];
+      for (const a of interpretacion.dominio) {
+        const h = evaluar(ast.cuerpo, interpretacion, variante(entorno, x, a));
+        if (h.valor === buscado) {
+          // Basta un caso para decidir: el nodo solo muestra ese caso.
+          const caso = { variable: x, elemento: a };
+          return esParaTodo
+            ? nodo(false, regla, `Contraejemplo: con ${x} ↦ ${a}, ${cuerpo} es F`, [h], { contraejemplo: caso })
+            : nodo(true, regla, `Testigo: con ${x} ↦ ${a}, ${cuerpo} es V`, [h], { testigo: caso });
+        }
+        hijos.push(h);
+      }
+
+      // No apareció ningún caso que decida: se revisaron todos los elementos de 𝒟.
+      const valor = esParaTodo;
+      const razon = `Comprobación completa: ${cuerpo} es ${VF(valor)} para ${x} ↦ ${enumerar(interpretacion.dominio)}`;
+      return nodo(valor, regla, razon, hijos, { completa: true });
+    }
 
     default:
       throw new Error(`Tipo de nodo desconocido: ${ast.tipo}`);
@@ -115,6 +146,14 @@ const CONECTIVOS = {
       : `el lado izquierdo es ${VF(p)} y el derecho es ${VF(q)}`,
   }),
 };
+
+/**
+ * Escribe una lista como en español: '1', '1 y 2', '1, 2 y 3'.
+ */
+function enumerar(elementos) {
+  if (elementos.length <= 1) return elementos.join('');
+  return `${elementos.slice(0, -1).join(', ')} y ${elementos.at(-1)}`;
+}
 
 /**
  * Comienzo de la razón de un caso atómico: la fórmula, los valores de sus variables
