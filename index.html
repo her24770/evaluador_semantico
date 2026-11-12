@@ -1,50 +1,20 @@
 <!doctype html>
 <html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Probador de sintaxis</title>
-  <style>
-    :root { --fondo: #f7f7f5; --tarjeta: #fff; --texto: #1d1d1b; --suave: #6b6b66; --borde: #dddcd6;
-            --ok: #1f7a4d; --error: #b3261e; --libre: #c25e00; --ligada: #1f5fbf; }
-    @media (prefers-color-scheme: dark) {
-      :root { --fondo: #161615; --tarjeta: #21211f; --texto: #ecebe6; --suave: #a3a29b; --borde: #3a3936;
-              --ok: #5cc28e; --error: #ff8a80; --libre: #ffb066; --ligada: #82aefc; }
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; padding: 24px 16px; background: var(--fondo); color: var(--texto);
-           font: 15px/1.5 system-ui, sans-serif; }
-    main { max-width: 760px; margin: 0 auto; display: grid; gap: 16px; }
-    h1 { margin: 0; font-size: 22px; }
-    .nota { color: var(--suave); margin: 4px 0 0; }
-    section { background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 10px; padding: 16px; }
-    label { display: block; font-weight: 600; margin-bottom: 6px; }
-    input, textarea { width: 100%; font: 16px ui-monospace, monospace; padding: 8px; border-radius: 6px;
-                      border: 1px solid var(--borde); background: var(--fondo); color: var(--texto); }
-    .ok { color: var(--ok); } .error { color: var(--error); }
-    .libre { color: var(--libre); font-weight: 700; } .ligada { color: var(--ligada); }
-    pre { overflow-x: auto; background: var(--fondo); padding: 8px; border-radius: 6px; margin: 8px 0 0; }
-    code { font-family: ui-monospace, monospace; }
-  </style>
-</head>
-<body>
-  <main>
-    <header>
-      <h1>Probador de sintaxis</h1>
-      <p class="nota">Página temporal para probar el módulo de sintaxis. La interfaz final la hace la Persona 3.</p>
-    </header>
-    <section>
-      <label for="funciones">Símbolos funcionales (nombre/aridad; aridad 0 = constante)</label>
-      <input id="funciones" value="f/1, g/2, c/0" spellcheck="false">
-      <label for="predicados" style="margin-top:12px">Predicados (nombre/aridad)</label>
-      <input id="predicados" value="P/1, Q/1, R/2" spellcheck="false">
-    </section>
-    <section>
-      <label for="formula">Fórmula (acepta ∀ ∃ ¬ ∧ ∨ → ↔ o forall exists ~ &amp; | -&gt; &lt;-&gt;)</label>
-      <input id="formula" value="∀x (P(x) → ∃y R(x, f(y))) ∧ Q(z)" spellcheck="false">
-      <div id="salida"></div>
-    </section>
-  </main>
-  <script type="module" src="/src/main.js"></script>
-</body>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#17392f">
+    <meta name="description" content="Declara un lenguaje de primer orden, define su interpretación y evalúa fórmulas con una explicación paso a paso.">
+    <title>Evaluador semántico</title>
+    <link rel="stylesheet" href="/src/interfaz/estilos/carga.css">
+    <link rel="preload" href="/src/interfaz/assets/fuentes/dm-sans-400.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/src/interfaz/assets/fuentes/dm-sans-700.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/src/interfaz/assets/fuentes/architects-daughter-400.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/src/interfaz/assets/fuentes/ibm-plex-mono-500.woff2" as="font" type="font/woff2" crossorigin>
+  </head>
+  <body>
+    <div id="app" aria-busy="true" inert></div>
+    <noscript>Activa JavaScript para usar el evaluador semántico de lógica de primer orden.</noscript>
+    <script type="module" src="/src/main.js"></script>
+  </body>
 </html>
