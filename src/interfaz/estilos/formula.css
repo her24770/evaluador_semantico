@@ -1,0 +1,23 @@
+.dato { padding: 20px 0; border-bottom: 1px solid var(--borde); }
+.dato:last-child { border: 0; padding-bottom: 0; }
+.dato .etiqueta { margin-bottom: 20px; }
+.dato .expresion { margin-bottom: 14px; }
+.dato .enlace { font-size: 12px; }
+.panel-formula { padding: 22px 24px; }
+.panel-formula > .etiqueta { margin-bottom: 8px; }
+.editor-formula { display: block; height: 105px; min-height: 100px; margin: 0; padding: 10px 0; border: 0; border-bottom: 2px solid var(--tiza-suave); border-radius: 0; background: transparent; font-size: clamp(32px, 4vw, 52px); font-weight: 500; line-height: 1.35; }
+.editor-formula::placeholder { font-size: 26px; }
+#formula-feedback { padding: 12px 0 0; }
+#formula-feedback > p { margin-bottom: 8px; font-size: 13px; }
+.lectura { margin: 8px 0; font-size: 12px; }
+.lectura p { margin: 12px 0; overflow-wrap: anywhere; }
+.leyenda-simbolos { margin: 18px 0 10px; }
+.simbolos { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; }
+.simbolos button { min-width: 0; height: 46px; padding: 0; border: 1px solid var(--borde); border-radius: var(--radio-control); background: var(--tecla); color: var(--tiza); font-size: 23px; font-weight: 500; }
+.simbolos button:hover { color: var(--amarillo); border-color: var(--amarillo); }
+.simbolos button:active { background: var(--pizarra); }
+.acciones-editor { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 20px 0 24px; }
+.acciones-editor .boton { flex: 1; }
+.atajo { color: var(--tiza-suave); font: 400 11px/1.5 var(--mono); }
+#casos-preview > .etiqueta { margin-bottom: 8px; }
+#casos-preview > .ayuda { margin-bottom: 16px; font-size: 13px; }

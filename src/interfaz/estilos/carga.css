@@ -1,0 +1,9 @@
+/* Se carga desde el HTML para ocultar el primer render antes del arranque JS. */
+html { background: #17392f; }
+#app[aria-busy='true'] { visibility: hidden; }
+
+:root[data-fuentes='alternativas'] {
+  --fuente: system-ui, sans-serif;
+  --manuscrita: system-ui, sans-serif;
+  --mono: ui-monospace, monospace;
+}

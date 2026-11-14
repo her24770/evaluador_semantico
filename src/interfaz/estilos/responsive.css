@@ -1,0 +1,69 @@
+@media (min-width: 1600px) {
+  .pizarra { padding-inline: 64px; }
+}
+@media (max-width: 1150px) {
+  .pizarra { padding: 30px 30px 24px; }
+  .nombre-app { font-size: 30px; }
+  .rejilla-evaluacion { grid-template-columns: minmax(220px, .8fr) minmax(0, 1.6fr); gap: 24px; }
+  #dictamen-contenedor { grid-column: 1 / -1; }
+  .dictamen { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 0 32px; align-items: start; }
+  .dictamen > .etiqueta { grid-column: 1 / -1; }
+  .dictamen .evidencia { grid-column: 2; grid-row: 2; }
+  .dictamen > .ayuda, .dictamen > .grupo-error { grid-column: 1 / -1; }
+  .sello { font-size: 40px; }
+  .rejilla-configuracion { grid-template-columns: minmax(0, 1.2fr) minmax(240px, 1fr); }
+}
+@media (max-width: 820px) {
+  body { border-width: 10px; padding: 6px; }
+  .pizarra { min-height: calc(100vh - 32px); padding: 24px; }
+  .cabecera { gap: 16px; }
+  .marca { font-size: 48px; }
+  .identidad { gap: 14px; }
+  .nombre-app { font-size: 29px; }
+  .navegacion { margin-top: 24px; }
+  .navegacion button { font-size: 14px; }
+  .numero-seccion { display: block; margin-right: 0; font-size: 12px; }
+  .rejilla-configuracion, .rejilla-doble { grid-template-columns: minmax(0, 1fr); }
+  .rejilla-configuracion > .panel-datos .nota { display: none; }
+  .rejilla-evaluacion { grid-template-columns: minmax(0, 1fr); }
+  .rejilla-evaluacion .panel-datos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .rejilla-evaluacion .panel-datos > .titulo-tiza { grid-column: 1 / -1; margin-bottom: 0; }
+  .dato { padding: 0; border: 0; }
+  .dato .etiqueta { font-size: 11px; margin-bottom: 12px; }
+  .dato .expresion { font-size: 20px; }
+  .dato .ayuda, .dato .correcto, #entorno-resumen { font-size: 13px; }
+  .rejilla-evaluacion > .panel-formula { grid-row: 1; }
+  #app[data-vista='resultados'] .rejilla-evaluacion > #dictamen-contenedor { grid-row: 1; }
+  #app[data-vista='resultados'] .rejilla-evaluacion > .panel-formula { grid-row: 2; }
+  .introduccion { padding-bottom: 24px; }
+}
+@media (max-width: 520px) {
+  body { border-width: 7px; padding: 5px; }
+  .pizarra { min-height: calc(100vh - 24px); padding: 20px 16px; }
+  .nombre-app { font-size: 24px; }
+  .cabecera { gap: 16px; }
+  .marca { font-size: 41px; }
+  .identidad { gap: 10px; }
+  .navegacion { display: flex; margin-top: 16px; gap: 20px; overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--borde) transparent; }
+  .navegacion button { flex: none; padding: 10px 1px 14px; font-size: 14px; white-space: nowrap; }
+  .numero-seccion { font-size: 11px; margin-bottom: 4px; }
+  .introduccion { padding: 22px 0; }
+  h1 { font-size: 23px; }
+  .panel, .panel-formula, .dictamen { padding: 18px; }
+  .titulo-tiza { font-size: 24px; }
+  .fila-simbolo { grid-template-columns: minmax(0, 1fr) 64px 32px; gap: 8px; }
+  .quitar { width: 32px; }
+  .rejilla-evaluacion .panel-datos { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .dato { padding-top: 4px; }
+  .dato + .dato { border-top: 1px solid var(--linea); padding-top: 20px; }
+  .dictamen { display: block; }
+  .sello { font-size: 36px; }
+  .editor-formula { font-size: 36px; }
+  .simbolos { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .atajo { display: none; }
+  .acciones-editor .boton { width: 100%; }
+  .acciones-pagina .boton { width: 100%; }
+  .detalle-nodo { padding-left: 10px; }
+  .arbol-explicacion { padding-left: 8px; }
+  .asignacion { font-size: 34px; }
+}

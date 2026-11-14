@@ -1,0 +1,25 @@
+.pizarra { position: relative; isolation: isolate; min-height: calc(100vh - 50px); max-width: 1800px; margin: auto; padding: 35px 50px 24px; background: var(--pizarra); border-top: 5px solid #38594b; border-bottom: 8px solid #36584b; }
+.cabecera { display: flex; align-items: center; gap: 24px; }
+.identidad { display: flex; gap: 20px; align-items: flex-start; }
+.marca { color: var(--amarillo); font-size: 56px; line-height: 1.15; font-weight: 700; }
+.nombre-app { margin: 0; font: 400 36px/1.4 var(--manuscrita); }
+.navegacion { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin-top: 18px; border-bottom: 2px solid var(--linea); }
+.navegacion button { position: relative; padding: 15px 4px 18px; border: 0; background: transparent; color: var(--tiza-suave); font-size: 16px; text-align: left; }
+.numero-seccion { margin-right: 8px; font-variant-numeric: tabular-nums; }
+.navegacion button[aria-current] { color: var(--amarillo); font-weight: 700; }
+.navegacion button[aria-current]::after { position: absolute; content: ''; bottom: -2px; left: 3px; width: min(165px, 88%); height: 4px; background: var(--amarillo); }
+.navegacion button:hover { color: var(--tiza); }
+.introduccion { padding: 24px 2px; }
+h1 { margin: 0; font: 400 25px/1.4 var(--manuscrita); text-wrap: balance; }
+.panel { min-width: 0; border: 1.5px solid var(--borde); border-radius: var(--radio); padding: 22px; }
+.panel-datos { background: var(--panel); }
+.panel-datos > .titulo-tiza { padding-bottom: 10px; border-bottom: 2px solid var(--borde); }
+/* A 1440px: 1290px disponibles; la proporción de Figma es 309:572:343
+   y los dos espacios de 30px dejan 1230px para las tres columnas. */
+.rejilla-evaluacion { display: grid; grid-template-columns: minmax(0, 309fr) minmax(0, 572fr) minmax(0, 343fr); gap: 30px; align-items: stretch; }
+.rejilla-evaluacion > #dictamen-contenedor > .panel { height: 100%; }
+.rejilla-configuracion { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(260px, 1fr); gap: var(--espacio); align-items: start; }
+.columna-configuracion { display: grid; gap: var(--espacio); }
+.rejilla-doble { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--espacio); align-items: start; margin-top: var(--espacio); }
+.rejilla-doble > div { display: grid; gap: var(--espacio); }
+.acciones-pagina { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; margin: 24px 0; }

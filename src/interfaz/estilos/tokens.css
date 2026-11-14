@@ -1,0 +1,22 @@
+:root {
+  color-scheme: dark;
+  --madera: #71503a;
+  --madera-interior: #493528;
+  --pizarra: #17392f;
+  --panel: #21473c;
+  --tecla: #285044;
+  --sello: #29473b;
+  --tiza: #f2f1dd;
+  --tiza-suave: #b5cabe;
+  --amarillo: #f2d18b;
+  --verde: #a9d9c0;
+  --coral: #e19b81;
+  --borde: #759389;
+  --linea: #527366;
+  --fuente: 'DM Sans', sans-serif;
+  --manuscrita: 'Architects Daughter', cursive;
+  --mono: 'IBM Plex Mono', monospace;
+  --radio: 8px;
+  --radio-control: 6px;
+  --espacio: 24px;
+}
