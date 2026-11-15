@@ -1,6 +1,7 @@
 import { aCadena, aCadenaCompleta } from '../../sintaxis/index.js';
 import { escapar, erroresHTML } from '../componentes/comunes.js';
 import { dictamen, casosHTML, explicacionHTML } from './resultados.js';
+import { panelArbolHTML } from '../arbol/visor.js';
 
 const SIMBOLOS = [['¬', 'Negación'], ['∧', 'Conjunción'], ['∨', 'Disyunción'], ['→', 'Implicación'], ['∀', 'Para todo'], ['∃', 'Existe'], ['(', 'Abrir paréntesis'], [')', 'Cerrar paréntesis']];
 
@@ -29,6 +30,7 @@ export function formula(estado, revision, ocupado, fallo) {
       <p class="ayuda leyenda-simbolos">Panel de símbolos</p><div class="simbolos" role="group" aria-label="Insertar símbolo matemático">${SIMBOLOS.map(([s, n]) => `<button type="button" data-action="insertar" data-simbolo="${s}" aria-label="Insertar ${n.toLowerCase()}" title="${n}">${s}</button>`).join('')}</div>
       <div class="acciones-editor"><button type="button" class="boton primario" data-action="evaluar" ${ocupado ? 'disabled' : ''}>${ocupado ? 'Evaluando…' : 'Evaluar fórmula'} <span aria-hidden="true">→</span></button><span class="atajo">Ctrl / ⌘ + Enter</span></div>
       <div id="casos-preview">${casosHTML(estado.resultado)}</div>
-    </section><div id="dictamen-contenedor">${dictamen(estado, revision, ocupado, fallo)}</div></div>
+    </section><div id="dictamen-contenedor">${dictamen(estado, revision, ocupado, fallo)}</div>
+    ${panelArbolHTML()}</div>
     <div id="explicacion-contenedor">${explicacionHTML(estado.resultado)}</div>`;
 }
