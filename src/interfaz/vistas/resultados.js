@@ -1,4 +1,23 @@
 import { escapar, erroresHTML } from '../componentes/comunes.js';
+import { aCadena } from '../../sintaxis/index.js';
+import { resumenInterpretacionHTML } from '../componentes/resumen.js';
+import { panelCuantificadoresHTML } from '../cuantificadores/visor.js';
+
+export function resultados(estado, revision, ocupado = false, fallo = '') {
+  const resultado = revision.valido && !ocupado && !fallo ? estado.resultado : null;
+  const formula = resultado?.formula ?? (revision.ast ? aCadena(revision.ast) : estado.formula);
+  return `<section class="resultado-formula" aria-labelledby="formula-consulta">
+    <div><h2 id="formula-consulta" class="titulo-tiza">${resultado ? 'Fórmula evaluada' : 'Fórmula a evaluar'}</h2>
+    <p class="resultado-expresion mono">${escapar(formula || 'Aún no has ingresado una fórmula.')}</p></div>
+    <button type="button" class="boton secundario" data-action="editar-formula">${formula ? 'Editar fórmula' : 'Ingresar fórmula'}</button></section>
+    <div class="rejilla-resultados ${resultado ? '' : 'sin-evaluacion'}">
+      <div id="dictamen-contenedor">${dictamen({ ...estado, resultado }, revision, ocupado, fallo)}</div>
+      <div id="explicacion-contenedor">${explicacionHTML(resultado)}</div>
+    </div>
+    ${!resultado && !ocupado && fallo ? '<button type="button" class="boton primario resultado-reintentar" data-action="evaluar">Reintentar evaluación →</button>' : ''}
+    <details class="resultado-datos"><summary>Interpretación y entorno ${resultado ? 'utilizados' : 'actuales'}</summary>${resumenInterpretacionHTML(estado, revision)}</details>
+    <div id="cuantificadores-contenedor">${resultado ? panelCuantificadoresHTML(estado.tablaCuantificadores) : ''}</div>`;
+}
 
 export function dictamen(estado, revision, ocupado = false, fallo = '') {
   const resultado = estado.resultado;

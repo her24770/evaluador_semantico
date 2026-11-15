@@ -27,6 +27,48 @@ const VERDADERA_O_FALSA = (valor) => (valor ? 'Es verdadera' : 'Es falsa');
  *            completa?: true}}
  */
 export function evaluar(ast, interpretacion, entorno) {
+  return recorrer(ast, interpretacion, entorno);
+}
+
+export const MAX_NODOS_EXHAUSTIVOS = 10000;
+export const MAX_PROFUNDIDAD_EXHAUSTIVA = 128;
+
+class LimiteExhaustivo extends Error {}
+
+export function contieneCuantificadores(ast) {
+  const pendientes = [ast];
+  while (pendientes.length) {
+    const actual = pendientes.pop();
+    if (['paratodo', 'existe'].includes(actual.tipo)) return true;
+    if (actual.tipo === 'no') pendientes.push(actual.sub);
+    if (['y', 'o', 'imp', 'sii'].includes(actual.tipo)) pendientes.push(actual.izq, actual.der);
+  }
+  return false;
+}
+
+export function evaluarExhaustivo(ast, interpretacion, entorno, {
+  maxNodos = MAX_NODOS_EXHAUSTIVOS, maxProfundidad = MAX_PROFUNDIDAD_EXHAUSTIVA,
+} = {}) {
+  if (![maxNodos, maxProfundidad].every((n) => Number.isSafeInteger(n) && n > 0)) {
+    throw new RangeError('Los límites de evaluación deben ser enteros positivos.');
+  }
+  const contexto = { nodos: 0, maxNodos, maxProfundidad };
+  try {
+    const resultado = recorrer(ast, interpretacion, entorno, contexto);
+    return { completa: true, resultado, nodosEvaluados: contexto.nodos };
+  } catch (error) {
+    if (!(error instanceof LimiteExhaustivo)) throw error;
+    return { completa: false, resultado: null, nodosEvaluados: contexto.nodos, motivo: error.message };
+  }
+}
+
+function recorrer(ast, interpretacion, entorno, contexto = null, profundidad = 0) {
+  if (contexto) {
+    if (contexto.nodos >= contexto.maxNodos || profundidad >= contexto.maxProfundidad) {
+      throw new LimiteExhaustivo(`La tabla excede el límite de ${contexto.maxNodos} nodos o ${contexto.maxProfundidad} niveles. Reduce el dominio o la complejidad de la fórmula. No se muestra una tabla parcial.`);
+    }
+    contexto.nodos++;
+  }
   // "extra" lleva testigo, contraejemplo o completa, solo en los nodos de ∀ y ∃ que les toca.
   const nodo = (valor, regla, razon, hijos = [], extra = {}) => ({
     formula: aCadena(ast),
@@ -37,7 +79,7 @@ export function evaluar(ast, interpretacion, entorno) {
     hijos,
     ...extra,
   });
-  const sub = (f) => evaluar(f, interpretacion, entorno);
+  const sub = (f) => recorrer(f, interpretacion, entorno, contexto, profundidad + 1);
 
   switch (ast.tipo) {
     case 'pred': {
@@ -90,8 +132,8 @@ export function evaluar(ast, interpretacion, entorno) {
 
       const hijos = [];
       for (const a of interpretacion.dominio) {
-        const h = evaluar(ast.cuerpo, interpretacion, variante(entorno, x, a));
-        if (h.valor === buscado) {
+        const h = recorrer(ast.cuerpo, interpretacion, variante(entorno, x, a), contexto, profundidad + 1);
+        if (h.valor === buscado && !contexto) {
           // Basta un caso para decidir: el nodo solo muestra ese caso.
           const caso = { variable: x, elemento: a };
           return esParaTodo
@@ -99,6 +141,18 @@ export function evaluar(ast, interpretacion, entorno) {
             : nodo(true, regla, `Testigo: con ${x} ↦ ${a}, ${cuerpo} es V`, [h], { testigo: caso });
         }
         hijos.push(h);
+      }
+
+      if (contexto) {
+        const decisivos = interpretacion.dominio.filter((a, i) => hijos[i].valor === buscado);
+        const valor = esParaTodo ? decisivos.length === 0 : decisivos.length > 0;
+        const razon = esParaTodo
+          ? `Regla ∀: todos los casos deben ser V. ${decisivos.length} ${decisivos.length === 1 ? 'contraejemplo' : 'contraejemplos'} en ${hijos.length} casos.`
+          : `Regla ∃: basta un caso V. ${decisivos.length} ${decisivos.length === 1 ? 'testigo' : 'testigos'} en ${hijos.length} casos.`;
+        return nodo(valor, regla, razon, hijos, {
+          completa: true, variable: x, cuerpo,
+          elementos: [...interpretacion.dominio], decisivos,
+        });
       }
 
       // No apareció ningún caso que decida: se revisaron todos los elementos de 𝒟.

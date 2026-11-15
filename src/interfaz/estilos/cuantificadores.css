@@ -1,0 +1,25 @@
+.tabla-cuantificadores { margin-top: 32px; padding-top: 28px; border-top: 1px solid var(--borde); }
+.tabla-cuantificadores > p { margin: 16px 0; }
+.cuant-tabla { min-width: 0; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--linea); }
+.cuant-tabla h3 { font-size: 18px; line-height: 1.6; overflow-wrap: anywhere; }
+.cuant-tabla > p { margin: 12px 0; overflow-wrap: anywhere; }
+.cuant-resultado { white-space: nowrap; }
+.cuant-desplazamiento { max-width: 100%; overflow-x: auto; scrollbar-color: var(--borde) var(--pizarra); }
+.cuant-tabla table { width: 100%; border-collapse: collapse; text-align: left; font-variant-numeric: tabular-nums; }
+.cuant-tabla caption { padding: 12px 0; color: var(--tiza-suave); text-align: left; overflow-wrap: anywhere; }
+.cuant-tabla th, .cuant-tabla td { padding: 12px; vertical-align: top; border-bottom: 1px solid var(--linea); }
+.cuant-tabla thead th { font-size: 14px; font-weight: 500; }
+.cuant-tabla th:first-child { max-width: 16ch; overflow-wrap: anywhere; }
+.cuant-tabla td:last-child { width: 65%; min-width: 240px; }
+.cuant-tabla td:nth-child(2) { font-family: var(--mono); }
+.cuant-decisivo > th, .cuant-decisivo > td:nth-child(3) { color: var(--amarillo); font-weight: 600; }
+.cuant-tabla summary { cursor: pointer; overflow-wrap: anywhere; }
+.cuant-tabla summary:hover { color: var(--amarillo); }
+.cuant-tabla details > p { margin: 12px 0; overflow-wrap: anywhere; }
+.cuant-paginacion { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 16px; }
+.cuant-paginacion .ayuda { margin: 0; }
+.cuant-paginacion button:disabled { opacity: .5; cursor: default; }
+@media (max-width: 600px) {
+  .cuant-tabla th, .cuant-tabla td { padding: 10px 6px; }
+  .cuant-tabla h3 { font-size: 16px; }
+}

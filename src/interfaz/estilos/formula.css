@@ -19,5 +19,4 @@
 .acciones-editor { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 20px 0 24px; }
 .acciones-editor .boton { flex: 1; }
 .atajo { color: var(--tiza-suave); font: 400 11px/1.5 var(--mono); }
-#casos-preview > .etiqueta { margin-bottom: 8px; }
-#casos-preview > .ayuda { margin-bottom: 16px; font-size: 13px; }
+.resumen-interpretacion .expresion { overflow-wrap: anywhere; }
