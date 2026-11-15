@@ -1,0 +1,12 @@
+.sustitucion-panel { grid-column: 1 / -1; }
+.sustitucion-panel > .titulo-tiza { margin-bottom: 8px; }
+.sustitucion-campos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 16px; margin: 16px 0 8px; }
+.sustitucion-campos input { font-size: 18px; }
+.sustitucion-salida { display: grid; gap: 8px; justify-items: start; margin-top: 12px; }
+.sustitucion-salida p { margin: 0; overflow-wrap: anywhere; }
+.sustitucion-salida .etiqueta { margin-top: 8px; }
+.sustitucion-formula { font-size: clamp(20px, 2.6vw, 30px); }
+.sustitucion-formula.tachada { color: var(--coral); text-decoration: line-through; text-decoration-thickness: 1px; font-size: 18px; }
+.sustitucion-captura { color: var(--coral); font-weight: 600; }
+.sustitucion-salida .boton { margin-top: 12px; }
+@media (max-width: 640px) { .sustitucion-campos { grid-template-columns: minmax(0, 1fr); gap: 4px; } }

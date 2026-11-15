@@ -1,8 +1,8 @@
-import { escapar } from './comunes.js';
+import { escapar, propio } from './comunes.js';
 
 export function resumenEntornoHTML(revision) {
   return revision.ast ? revision.libres.length
-    ? `<p class="expresion">${revision.libres.map((v) => `${escapar(v)} ↦ ${escapar(revision.entorno[v] ?? '?')}`).join('<br>')}</p><button type="button" class="enlace" data-action="navegar" data-seccion="entorno">${revision.errores.entorno.length ? 'Asignar variables libres' : 'Editar entorno'} →</button>`
+    ? `<p class="expresion">${revision.libres.map((v) => `${escapar(v)} ↦ ${escapar(propio(revision.entorno, v) ?? '?')}`).join('<br>')}</p><button type="button" class="enlace" data-action="navegar" data-seccion="entorno">${revision.errores.entorno.length ? 'Asignar variables libres' : 'Editar entorno'} →</button>`
     : '<p class="correcto">Fórmula cerrada</p><p class="ayuda">No requiere asignaciones.</p>'
     : '<p class="ayuda">El entorno depende de las variables libres de tu fórmula.</p>';
 }

@@ -85,6 +85,8 @@ new ErrorLogico(categoria, mensaje, pos)
 | `función` | Semántica | f no está definida en alguna tupla |
 | `relación` | Semántica | relación vacía o tupla con elementos fuera de 𝒟 |
 | `entorno` | Semántica | variable libre sin valor |
+| `sustitución` | Sintaxis | en φ[t/x], x no es una variable |
+| `límite` | Semántica | la evaluación pasa de 100 000 pasos (`MAX_NODOS_EVALUACION`) |
 
 **Regla del requerimiento 7:** si hay cualquier error, no se muestra Verdadero ni Falso.
 
@@ -95,7 +97,7 @@ validarInterpretacion(firma, { dominioTexto, funciones, relaciones })
   // → { errores, interpretacion: { dominio: string[], funciones: Map, relaciones: Map } }
 validarEntorno(libres, entorno, dominio)
   // → { errores, entorno: { x: 'a', ... } }
-evaluar(ast, interpretacion, entorno)
+evaluar(ast, interpretacion, entorno, { maxNodos })   // maxNodos es opcional
   // → nodo de explicación (abajo)
 ```
 

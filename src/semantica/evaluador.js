@@ -22,14 +22,22 @@ const VERDADERA_O_FALSA = (valor) => (valor ? 'Es verdadera' : 'Es falsa');
  * @param {object} ast  fórmula (AST de analizar)
  * @param {{dominio: string[], funciones: Map, relaciones: Map<string, Set<string>>}} interpretacion  ya validada
  * @param {Object<string, string>} entorno  ya validado (un valor para cada variable libre)
+ * @param {{maxNodos?: number}} [opciones]  tope de pasos; si se pasa, lanza ErrorLogico('límite')
  * @returns {{formula: string, valor: boolean, regla: string, razon: string, entorno: string, hijos: object[],
  *            testigo?: {variable: string, elemento: string}, contraejemplo?: {variable: string, elemento: string},
  *            completa?: true}}
  */
-export function evaluar(ast, interpretacion, entorno) {
-  return recorrer(ast, interpretacion, entorno);
+export function evaluar(ast, interpretacion, entorno, { maxNodos = MAX_NODOS_EVALUACION } = {}) {
+  if (!Number.isSafeInteger(maxNodos) || maxNodos <= 0) {
+    throw new RangeError('Los límites de evaluación deben ser enteros positivos.');
+  }
+  const contexto = { nodos: 0, maxNodos, maxProfundidad: Infinity, exhaustivo: false };
+  return recorrer(ast, interpretacion, entorno, contexto);
 }
 
+// Cada paso guarda su explicación, así que una fórmula enorme puede llenar la memoria
+// y cerrar la pestaña. Con 100 000 pasos el navegador tarda unos 2 s en mostrar el resultado.
+export const MAX_NODOS_EVALUACION = 100000;
 export const MAX_NODOS_EXHAUSTIVOS = 10000;
 export const MAX_PROFUNDIDAD_EXHAUSTIVA = 128;
 
@@ -52,7 +60,7 @@ export function evaluarExhaustivo(ast, interpretacion, entorno, {
   if (![maxNodos, maxProfundidad].every((n) => Number.isSafeInteger(n) && n > 0)) {
     throw new RangeError('Los límites de evaluación deben ser enteros positivos.');
   }
-  const contexto = { nodos: 0, maxNodos, maxProfundidad };
+  const contexto = { nodos: 0, maxNodos, maxProfundidad, exhaustivo: true };
   try {
     const resultado = recorrer(ast, interpretacion, entorno, contexto);
     return { completa: true, resultado, nodosEvaluados: contexto.nodos };
@@ -62,13 +70,16 @@ export function evaluarExhaustivo(ast, interpretacion, entorno, {
   }
 }
 
-function recorrer(ast, interpretacion, entorno, contexto = null, profundidad = 0) {
-  if (contexto) {
-    if (contexto.nodos >= contexto.maxNodos || profundidad >= contexto.maxProfundidad) {
-      throw new LimiteExhaustivo(`La tabla excede el límite de ${contexto.maxNodos} nodos o ${contexto.maxProfundidad} niveles. Reduce el dominio o la complejidad de la fórmula. No se muestra una tabla parcial.`);
+// contexto.exhaustivo = true: revisa todos los casos (tabla de cuantificadores).
+// contexto.exhaustivo = false: se detiene en el primer caso que decide (evaluar).
+function recorrer(ast, interpretacion, entorno, contexto, profundidad = 0) {
+  if (contexto.nodos >= contexto.maxNodos || profundidad >= contexto.maxProfundidad) {
+    if (!contexto.exhaustivo) {
+      throw new ErrorLogico('límite', `La evaluación necesita más de ${contexto.maxNodos.toLocaleString('es')} pasos. El dominio o la cantidad de cuantificadores anidados es demasiado grande. Reduce el dominio o simplifica la fórmula.`);
     }
-    contexto.nodos++;
+    throw new LimiteExhaustivo(`La tabla excede el límite de ${contexto.maxNodos} nodos o ${contexto.maxProfundidad} niveles. Reduce el dominio o la complejidad de la fórmula. No se muestra una tabla parcial.`);
   }
+  contexto.nodos++;
   // "extra" lleva testigo, contraejemplo o completa, solo en los nodos de ∀ y ∃ que les toca.
   const nodo = (valor, regla, razon, hijos = [], extra = {}) => ({
     formula: aCadena(ast),
@@ -133,7 +144,7 @@ function recorrer(ast, interpretacion, entorno, contexto = null, profundidad = 0
       const hijos = [];
       for (const a of interpretacion.dominio) {
         const h = recorrer(ast.cuerpo, interpretacion, variante(entorno, x, a), contexto, profundidad + 1);
-        if (h.valor === buscado && !contexto) {
+        if (h.valor === buscado && !contexto.exhaustivo) {
           // Basta un caso para decidir: el nodo solo muestra ese caso.
           const caso = { variable: x, elemento: a };
           return esParaTodo
@@ -143,7 +154,7 @@ function recorrer(ast, interpretacion, entorno, contexto = null, profundidad = 0
         hijos.push(h);
       }
 
-      if (contexto) {
+      if (contexto.exhaustivo) {
         const decisivos = interpretacion.dominio.filter((a, i) => hijos[i].valor === buscado);
         const valor = esParaTodo ? decisivos.length === 0 : decisivos.length > 0;
         const razon = esParaTodo

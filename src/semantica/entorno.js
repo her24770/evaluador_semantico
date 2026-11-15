@@ -22,13 +22,16 @@ export function validarEntorno(libres, entorno, dominio) {
   const enDominio = new Set(dominio);
 
   for (const variable of libres) {
-    const valor = String(entorno?.[variable] ?? '').trim();
+    // Object.hasOwn: una variable sin asignar llamada "toString" no debe leer el prototipo.
+    const asignado = entorno && Object.hasOwn(entorno, variable) ? entorno[variable] : '';
+    const valor = String(asignado ?? '').trim();
     if (valor === '') {
       errores.push(new ErrorLogico('entorno', `La variable libre ${variable} no tiene valor en el entorno.`));
     } else if (!enDominio.has(valor)) {
       errores.push(new ErrorLogico('entorno', `El valor de ${variable} es "${valor}", que no está en 𝒟.`));
     } else {
-      limpio[variable] = valor;
+      // defineProperty: con "limpio[variable] = valor", una variable "__proto__" no se guardaría.
+      Object.defineProperty(limpio, variable, { value: valor, writable: true, enumerable: true, configurable: true });
     }
   }
   return { errores, entorno: limpio };

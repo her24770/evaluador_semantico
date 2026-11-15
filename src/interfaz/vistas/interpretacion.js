@@ -1,4 +1,4 @@
-import { escapar, opciones, panel, erroresHTML } from '../componentes/comunes.js';
+import { escapar, opciones, panel, erroresHTML, propio } from '../componentes/comunes.js';
 import { tuplaEn, MAX_CASILLAS } from '../modelo.js';
 
 const TAM_PAGINA = 24;
@@ -13,7 +13,7 @@ function tablaFuncion(simbolo, dominio, paginas) {
     const tupla = tuplaEn(dominio, aridad, inicio + i);
     const clave = tupla.join(',');
     const llamada = aridad ? `${simbolo.nombre}(${tupla.join(', ')})` : simbolo.nombre;
-    return `<tr><th scope="row"><label for="tabla-${simbolo.id}-${inicio + i}">${escapar(llamada)}</label></th><td><select id="tabla-${simbolo.id}-${inicio + i}" data-tabla="${simbolo.id}" data-clave="${escapar(clave)}">${opciones(dominio, simbolo.tabla?.[clave])}</select></td></tr>`;
+    return `<tr><th scope="row"><label for="tabla-${simbolo.id}-${inicio + i}">${escapar(llamada)}</label></th><td><select id="tabla-${simbolo.id}-${inicio + i}" data-tabla="${simbolo.id}" data-clave="${escapar(clave)}">${opciones(dominio, propio(simbolo.tabla, clave))}</select></td></tr>`;
   }).join('');
   return `<table class="tabla-funcion"><caption class="solo-lectores">Valores de ${escapar(simbolo.nombre)}</caption><thead><tr><th scope="col">Entrada</th><th scope="col">Valor en 𝒟</th></tr></thead><tbody>${filas}</tbody></table>
     ${total > TAM_PAGINA ? `<div class="paginacion"><button type="button" class="boton secundario" data-action="pagina-tabla" data-id="${simbolo.id}" data-pagina="${pagina - 1}" ${pagina === 0 ? 'disabled' : ''}>Anterior</button><span>${inicio + 1}–${Math.min(inicio + TAM_PAGINA, total)} de ${total}</span><button type="button" class="boton secundario" data-action="pagina-tabla" data-id="${simbolo.id}" data-pagina="${pagina + 1}" ${inicio + TAM_PAGINA >= total ? 'disabled' : ''}>Siguiente</button></div>` : ''}`;

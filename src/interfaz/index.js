@@ -2,7 +2,7 @@ import './estilos/index.css';
 import { crearEstado, revisarEntrada, invalidarResultado, seccionPendiente } from './modelo.js';
 import { insertarSimbolo } from './editor.js';
 import { estructura, SECCIONES } from './componentes/estructura.js';
-import { erroresHTML } from './componentes/comunes.js';
+import { erroresHTML, guardarPropio } from './componentes/comunes.js';
 import { resumenEntornoHTML } from './componentes/resumen.js';
 import { lenguaje, firmaHTML } from './vistas/lenguaje.js';
 import { interpretacion } from './vistas/interpretacion.js';
@@ -10,6 +10,8 @@ import { formula, feedbackFormula, accionesFormulaHTML } from './vistas/formula.
 import { entorno } from './vistas/entorno.js';
 import { dictamen, resultados } from './vistas/resultados.js';
 import { montarArbol } from './arbol/visor.js';
+import { resultadoSustitucionHTML, calcularSustitucion } from './sustitucion/vista.js';
+import { aCadena } from '../sintaxis/index.js';
 import { montarTablaCuantificadores } from './cuantificadores/visor.js';
 
 export function iniciarInterfaz(raiz) {
@@ -93,6 +95,7 @@ export function iniciarInterfaz(raiz) {
       ['#cuantificadores-contenedor', ''],
       ['#acciones-formula', accionesFormulaHTML(revision, ocupado)],
       ['#entorno-resumen', resumenEntornoHTML(revision)],
+      ['#sustitucion-resultado', resultadoSustitucionHTML(estado, revision)],
     ];
     visorCuantificadores?.destruir();
     visorCuantificadores = null;
@@ -116,14 +119,21 @@ export function iniciarInterfaz(raiz) {
 
   function guardarEntrada(elemento) {
     const d = elemento.dataset;
+    // La sustitución no cambia la fórmula ni el resultado: solo se recalcula su panel.
+    if (d.sustitucion) {
+      estado.sustitucion[d.sustitucion] = elemento.value;
+      const destino = $('#sustitucion-resultado');
+      if (destino) destino.innerHTML = resultadoSustitucionHTML(estado, revision);
+      return;
+    }
     if (d.entrada) {
       estado[d.entrada] = elemento.value;
       if (d.entrada === 'formula') seleccion = { inicio: elemento.selectionStart, fin: elemento.selectionEnd };
     }
     else if (d.campo) estado[d.tipo].find((s) => s.id === d.id)[d.campo] = elemento.value;
-    else if (d.tabla) estado.funciones.find((s) => s.id === d.tabla).tabla[d.clave] = elemento.value;
+    else if (d.tabla) guardarPropio(estado.funciones.find((s) => s.id === d.tabla).tabla, d.clave, elemento.value);
     else if (d.relacion) estado.predicados.find((s) => s.id === d.relacion).relacion = elemento.value;
-    else if (d.variable) Object.defineProperty(estado.entorno, d.variable, { value: elemento.value, writable: true, enumerable: true, configurable: true });
+    else if (d.variable) guardarPropio(estado.entorno, d.variable, elemento.value);
     else return;
     detenerEvaluacion();
     invalidarResultado(estado);
@@ -222,6 +232,21 @@ export function iniciarInterfaz(raiz) {
       }
       case 'insertar': insertarSimbolo($('#formula'), d.simbolo, seleccion); break;
       case 'evaluar': prepararEvaluacion(); break;
+      case 'usar-sustitucion': {
+        const r = calcularSustitucion(estado, revision);
+        if (!r || r.error) break;
+        detenerEvaluacion();
+        estado.formula = aCadena(r.resultado);
+        seleccion = { inicio: estado.formula.length, fin: estado.formula.length };
+        invalidarResultado(estado);
+        fallo = '';
+        revision = revisarEntrada(estado);
+        renderizar();
+        $('#formula').focus();
+        $('#formula').setSelectionRange(seleccion.inicio, seleccion.fin);
+        anunciar(`La fórmula ahora es ${estado.formula}.`);
+        break;
+      }
       case 'cancelar': detenerEvaluacion(); fallo = 'Cancelaste la evaluación. Tus entradas se conservan.'; renderizar(); anunciar(fallo); break;
       case 'error-pos': {
         navegar(d.seccion === 'formula' ? 'formula' : 'interpretacion');

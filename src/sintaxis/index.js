@@ -6,6 +6,7 @@
 export { ErrorLogico } from './errores.js';
 export { validarLenguaje, RE_NOMBRE, RESERVADAS } from './lenguaje.js';
 export { tokenizar } from './lexer.js';
-export { analizar } from './parser.js';
+export { analizar, analizarTermino } from './parser.js';
+export { sustituir, prepararSustitucion } from './sustitucion.js';
 export { recorrerOcurrencias, variablesLibres, variablesLigadas, esCerrada } from './variables.js';
 export { aCadena, aCadenaCompleta, terminoACadena } from './imprimir.js';

@@ -29,8 +29,22 @@ import { tokenizar } from './lexer.js';
  * @returns {object} AST
  */
 export function analizar(texto, firma) {
+  return analizarDesde(texto, firma, 'fórmula');
+}
+
+/**
+ * Lee un término solo, por ejemplo f(x, y), para la sustitución φ[t/x] (tema 08).
+ * @param {string} texto
+ * @param {{funciones: Map<string, number>, predicados: Map<string, number>}} firma
+ * @returns {object} nodo 'var' o 'fun'
+ */
+export function analizarTermino(texto, firma) {
+  return analizarDesde(texto, firma, 'término');
+}
+
+function analizarDesde(texto, firma, inicio) {
   if (String(texto).trim() === '') {
-    throw new ErrorLogico('sintaxis', 'La fórmula está vacía.', 0);
+    throw new ErrorLogico('sintaxis', inicio === 'término' ? 'El término está vacío.' : 'La fórmula está vacía.', 0);
   }
 
   const tokens = tokenizar(texto);
@@ -222,10 +236,12 @@ export function analizar(texto, firma) {
 
   // --- Inicio -----------------------------------------------------------------
 
-  const ast = formula();
+  const ast = inicio === 'término' ? termino() : formula();
   if (actual().tipo !== 'FIN') {
     const t = actual();
-    throw new ErrorLogico('sintaxis', `Sobra ${describir(t)}: la fórmula ya estaba completa (¿falta un conectivo o un paréntesis?).`, t.pos);
+    throw new ErrorLogico('sintaxis', inicio === 'término'
+      ? `Sobra ${describir(t)}: el término ya estaba completo.`
+      : `Sobra ${describir(t)}: la fórmula ya estaba completa (¿falta un conectivo o un paréntesis?).`, t.pos);
   }
   return ast;
 }

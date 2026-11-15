@@ -13,6 +13,9 @@ import { leerDominio, leerTuplas, claveDeTupla, normalizarClave, todasLasTuplas 
 /** Cuántas tuplas faltantes se nombran en un mensaje antes de decir "y N más". */
 const MAX_FALTANTES = 5;
 
+// Lee solo propiedades propias: un símbolo llamado "constructor" no debe leer el prototipo.
+const propio = (objeto, clave) => (objeto && Object.hasOwn(objeto, clave) ? objeto[clave] : undefined);
+
 /** Escribe una tupla como la ve el usuario: (1, 2). Una tupla de un elemento se escribe sin paréntesis. */
 function tuplaATexto(tupla) {
   return tupla.length === 1 ? tupla[0] : `(${tupla.join(', ')})`;
@@ -149,14 +152,14 @@ export function validarInterpretacion(firma, { dominioTexto, funciones = {}, rel
   // 2. Cada símbolo de función de la firma necesita su tabla completa.
   const tablas = new Map();
   for (const [nombre, aridad] of firma.funciones) {
-    const valores = validarFuncion(nombre, aridad, funciones[nombre], dominio, errores);
+    const valores = validarFuncion(nombre, aridad, propio(funciones, nombre), dominio, errores);
     if (valores) tablas.set(nombre, valores);
   }
 
   // 3. Cada predicado de la firma necesita su relación.
   const conjuntos = new Map();
   for (const [nombre, aridad] of firma.predicados) {
-    const claves = validarRelacion(nombre, aridad, relaciones[nombre], dominio, errores);
+    const claves = validarRelacion(nombre, aridad, propio(relaciones, nombre), dominio, errores);
     if (claves) conjuntos.set(nombre, claves);
   }
 
