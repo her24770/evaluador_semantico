@@ -4,7 +4,7 @@ import { validarInterpretacion, validarEntorno, evaluar, evaluarExhaustivo, cont
 export function crearEstado() {
   return {
     seccion: 'lenguaje', funciones: [], predicados: [], dominioTexto: '',
-    formula: '', entorno: {}, resultado: null, tablaCuantificadores: null, evaluacionSolicitada: false,
+    formula: '', entorno: {}, sustitucion: { variable: '', termino: '' }, resultado: null, tablaCuantificadores: null, evaluacionSolicitada: false,
   };
 }
 
