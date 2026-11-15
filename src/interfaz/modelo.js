@@ -26,6 +26,11 @@ export function tuplaEn(dominio, aridad, indice) {
 
 export const MAX_CASILLAS = 4096;
 
+export function seccionPendiente(revision) {
+  return ['lenguaje', 'formula', 'interpretacion', 'entorno']
+    .find((seccion) => revision.errores[seccion].length) ?? null;
+}
+
 export function revisarEntrada(estado) {
   const errores = { lenguaje: [], interpretacion: [], formula: [], entorno: [] };
   const lengua = validarLenguaje(estado);

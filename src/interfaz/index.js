@@ -1,13 +1,14 @@
 import './estilos/index.css';
-import { crearEstado, revisarEntrada, invalidarResultado } from './modelo.js';
+import { crearEstado, revisarEntrada, invalidarResultado, seccionPendiente } from './modelo.js';
 import { insertarSimbolo } from './editor.js';
 import { estructura, SECCIONES } from './componentes/estructura.js';
 import { erroresHTML } from './componentes/comunes.js';
+import { resumenEntornoHTML } from './componentes/resumen.js';
 import { lenguaje, firmaHTML } from './vistas/lenguaje.js';
 import { interpretacion } from './vistas/interpretacion.js';
-import { formula, feedbackFormula } from './vistas/formula.js';
+import { formula, feedbackFormula, accionesFormulaHTML } from './vistas/formula.js';
 import { entorno } from './vistas/entorno.js';
-import { dictamen, casosHTML } from './vistas/resultados.js';
+import { dictamen, resultados } from './vistas/resultados.js';
 import { montarArbol } from './arbol/visor.js';
 import { montarTablaCuantificadores } from './cuantificadores/visor.js';
 
@@ -53,13 +54,13 @@ export function iniciarInterfaz(raiz) {
     const vistas = {
       lenguaje: () => lenguaje(estado, revision),
       interpretacion: () => interpretacion(estado, revision, paginas),
-      formula: () => formula(estado, revision, ocupado, fallo),
+      formula: () => formula(estado, revision, ocupado),
       entorno: () => entorno(estado, revision),
-      resultados: () => formula(estado, revision, ocupado, fallo),
+      resultados: () => resultados(estado, revision, ocupado, fallo),
     };
     $('#vista').innerHTML = vistas[actual.id]() + `<div class="acciones-pagina">
       ${indice ? `<button type="button" class="enlace" data-action="navegar" data-seccion="${SECCIONES[indice - 1].id}">← ${SECCIONES[indice - 1].nombre}</button>` : '<span></span>'}
-      ${indice < 3 ? `<button type="button" class="boton ${indice === 2 ? 'secundario' : 'primario'}" data-action="navegar" data-seccion="${SECCIONES[indice + 1].id}">Continuar a ${SECCIONES[indice + 1].nombre.toLowerCase()} →</button>` : indice === 3 ? '<button type="button" class="boton primario" data-action="evaluar">Evaluar fórmula →</button>' : ''}</div>`;
+      ${indice < 2 ? `<button type="button" class="boton primario" data-action="navegar" data-seccion="${SECCIONES[indice + 1].id}">Continuar a ${SECCIONES[indice + 1].nombre.toLowerCase()} →</button>` : indice === 3 ? '<button type="button" class="boton primario" data-action="evaluar">Evaluar fórmula →</button>' : ''}</div>`;
     visorArbol = montarArbol($('#arbol-sintactico'), revision);
     visorCuantificadores = montarTablaCuantificadores($('#cuantificadores-contenedor'), estado.tablaCuantificadores);
     const barra = $('.navegacion');
@@ -67,7 +68,7 @@ export function iniciarInterfaz(raiz) {
     const limites = barra.getBoundingClientRect();
     if (activo.right > limites.right) barra.scrollLeft += activo.right - limites.right;
     else if (activo.left < limites.left) barra.scrollLeft -= limites.left - activo.left;
-    if (enfocar) $('#titulo-vista').focus({ preventScroll: true });
+    if (enfocar) $('#titulo-vista').focus();
   }
 
   function navegar(seccion) {
@@ -88,19 +89,29 @@ export function iniciarInterfaz(raiz) {
       ['#errores-entorno', erroresHTML(revision.errores.entorno, 'entorno')],
       ['#formula-feedback', feedbackFormula(estado, revision)],
       ['#dictamen-contenedor', dictamen(estado, revision, ocupado, fallo)],
-      ['#casos-preview', casosHTML(null)],
       ['#explicacion-contenedor', ''],
       ['#cuantificadores-contenedor', ''],
+      ['#acciones-formula', accionesFormulaHTML(revision, ocupado)],
+      ['#entorno-resumen', resumenEntornoHTML(revision)],
     ];
     visorCuantificadores?.destruir();
     visorCuantificadores = null;
     cambios.forEach(([selector, html]) => { const destino = $(selector); if (destino) destino.innerHTML = html; });
     visorArbol?.actualizar(revision);
-    const botonEvaluar = $('[data-action="evaluar"]');
-    if (botonEvaluar) botonEvaluar.disabled = false;
-    const resumen = $('#entorno-resumen');
-    if (resumen) resumen.textContent = !revision.ast ? 'Escribe una fórmula bien formada.' : revision.libres.length
-      ? `Variables libres: ${revision.libres.join(', ')}. Asígnalas en Entorno.` : 'Fórmula cerrada. No requiere asignaciones.';
+  }
+
+  function prepararEvaluacion() {
+    if (ocupado) { navegar('resultados'); return; }
+    revision = revisarEntrada(estado);
+    const pendiente = seccionPendiente(revision);
+    if (pendiente) {
+      navegar(pendiente);
+      anunciar('Revisa las entradas de esta sección antes de evaluar.');
+      if (pendiente === 'formula') $('#formula')?.focus();
+      if (pendiente === 'entorno') $('[data-variable]')?.focus();
+      return;
+    }
+    evaluar();
   }
 
   function guardarEntrada(elemento) {
@@ -180,7 +191,7 @@ export function iniciarInterfaz(raiz) {
     if (e.target.closest('[data-action="insertar"]')) e.preventDefault();
   });
   raiz.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); evaluar(); }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); prepararEvaluacion(); }
   });
   raiz.addEventListener('click', (e) => {
     const boton = e.target.closest('[data-action]');
@@ -188,6 +199,7 @@ export function iniciarInterfaz(raiz) {
     const d = boton.dataset;
     switch (d.action) {
       case 'navegar': navegar(d.seccion); break;
+      case 'editar-formula': navegar('formula'); $('#formula')?.focus(); break;
       case 'agregar-simbolo': {
         detenerEvaluacion();
         const id = `s${++contador}`;
@@ -209,7 +221,7 @@ export function iniciarInterfaz(raiz) {
         break;
       }
       case 'insertar': insertarSimbolo($('#formula'), d.simbolo, seleccion); break;
-      case 'evaluar': evaluar(); break;
+      case 'evaluar': prepararEvaluacion(); break;
       case 'cancelar': detenerEvaluacion(); fallo = 'Cancelaste la evaluación. Tus entradas se conservan.'; renderizar(); anunciar(fallo); break;
       case 'error-pos': {
         navegar(d.seccion === 'formula' ? 'formula' : 'interpretacion');

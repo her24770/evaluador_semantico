@@ -14,10 +14,9 @@ h1 { margin: 0; font: 400 25px/1.4 var(--manuscrita); text-wrap: balance; }
 .panel { min-width: 0; border: 1.5px solid var(--borde); border-radius: var(--radio); padding: 22px; }
 .panel-datos { background: var(--panel); }
 .panel-datos > .titulo-tiza { padding-bottom: 10px; border-bottom: 2px solid var(--borde); }
-/* A 1440px: 1290px disponibles; la proporción de Figma es 309:572:343
-   y los dos espacios de 30px dejan 1230px para las tres columnas. */
-.rejilla-evaluacion { display: grid; grid-template-columns: minmax(0, 309fr) minmax(0, 572fr) minmax(0, 343fr); gap: 30px; align-items: stretch; }
-.rejilla-evaluacion > #dictamen-contenedor > .panel { height: 100%; }
+.rejilla-formula { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(260px, 1fr); gap: 30px; align-items: start; }
+.rejilla-resultados { display: grid; grid-template-columns: minmax(280px, .85fr) minmax(0, 1.4fr); gap: 32px; align-items: start; }
+.rejilla-resultados.sin-evaluacion { grid-template-columns: minmax(0, 1fr); }
 .rejilla-configuracion { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(260px, 1fr); gap: var(--espacio); align-items: start; }
 .columna-configuracion { display: grid; gap: var(--espacio); }
 .rejilla-doble { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--espacio); align-items: start; margin-top: var(--espacio); }

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { crearEstado, evaluarEntrada, invalidarResultado } from '../../src/interfaz/modelo.js';
 import { cuantificadoresEn, paginaCasos, panelCuantificadoresHTML, montarTablaCuantificadores } from '../../src/interfaz/cuantificadores/visor.js';
 import { formula } from '../../src/interfaz/vistas/formula.js';
+import { resultados } from '../../src/interfaz/vistas/resultados.js';
 
 function ejercicio(texto = '∀x ∃y R(x,y)') {
   return { ...crearEstado(), dominioTexto: '1, 2, 3', formula: texto,
@@ -13,14 +14,16 @@ function ejercicio(texto = '∀x ∃y R(x,y)') {
 function representar(estado, opciones) {
   const revision = evaluarEntrada(estado, opciones);
   Object.assign(estado, { resultado: revision.resultado, tablaCuantificadores: revision.tablaCuantificadores });
-  return { revision, html: formula(estado, revision, false, '') };
+  return { revision, html: resultados(estado, revision) };
 }
 
-test('el panel se integra con resultados y conserva el árbol sintáctico', () => {
-  const { html } = representar(ejercicio());
+test('el panel se integra con resultados y el árbol se conserva en Fórmula', () => {
+  const estado = ejercicio();
+  const { html, revision } = representar(estado);
   assert.match(html, /Tabla de cuantificadores/);
   assert.match(html, /Resultado global de la fórmula/);
-  assert.match(html, /arbol-sintactico/);
+  assert.doesNotMatch(html, /arbol-sintactico/);
+  assert.match(formula(estado, revision), /arbol-sintactico/);
   assert.match(html, /Evaluación paso a paso/);
 });
 
