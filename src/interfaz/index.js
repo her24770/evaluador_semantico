@@ -9,6 +9,7 @@ import { formula, feedbackFormula } from './vistas/formula.js';
 import { entorno } from './vistas/entorno.js';
 import { dictamen, casosHTML } from './vistas/resultados.js';
 import { montarArbol } from './arbol/visor.js';
+import { montarTablaCuantificadores } from './cuantificadores/visor.js';
 
 export function iniciarInterfaz(raiz) {
   const estado = crearEstado();
@@ -21,6 +22,7 @@ export function iniciarInterfaz(raiz) {
   let temporizador;
   let fallo = '';
   let visorArbol = null;
+  let visorCuantificadores = null;
   const $ = (selector) => raiz.querySelector(selector);
   raiz.innerHTML = estructura();
 
@@ -39,6 +41,7 @@ export function iniciarInterfaz(raiz) {
 
   function renderizar(enfocar = false) {
     visorArbol?.destruir();
+    visorCuantificadores?.destruir();
     const indice = SECCIONES.findIndex((s) => s.id === estado.seccion);
     const actual = SECCIONES[indice];
     raiz.dataset.vista = actual.id;
@@ -58,6 +61,7 @@ export function iniciarInterfaz(raiz) {
       ${indice ? `<button type="button" class="enlace" data-action="navegar" data-seccion="${SECCIONES[indice - 1].id}">← ${SECCIONES[indice - 1].nombre}</button>` : '<span></span>'}
       ${indice < 3 ? `<button type="button" class="boton ${indice === 2 ? 'secundario' : 'primario'}" data-action="navegar" data-seccion="${SECCIONES[indice + 1].id}">Continuar a ${SECCIONES[indice + 1].nombre.toLowerCase()} →</button>` : indice === 3 ? '<button type="button" class="boton primario" data-action="evaluar">Evaluar fórmula →</button>' : ''}</div>`;
     visorArbol = montarArbol($('#arbol-sintactico'), revision);
+    visorCuantificadores = montarTablaCuantificadores($('#cuantificadores-contenedor'), estado.tablaCuantificadores);
     const barra = $('.navegacion');
     const activo = $(`.navegacion button[aria-current]`).getBoundingClientRect();
     const limites = barra.getBoundingClientRect();
@@ -86,7 +90,10 @@ export function iniciarInterfaz(raiz) {
       ['#dictamen-contenedor', dictamen(estado, revision, ocupado, fallo)],
       ['#casos-preview', casosHTML(null)],
       ['#explicacion-contenedor', ''],
+      ['#cuantificadores-contenedor', ''],
     ];
+    visorCuantificadores?.destruir();
+    visorCuantificadores = null;
     cambios.forEach(([selector, html]) => { const destino = $(selector); if (destino) destino.innerHTML = html; });
     visorArbol?.actualizar(revision);
     const botonEvaluar = $('[data-action="evaluar"]');
@@ -115,7 +122,7 @@ export function iniciarInterfaz(raiz) {
 
   function evaluar() {
     detenerEvaluacion();
-    estado.resultado = null;
+    invalidarResultado(estado);
     estado.evaluacionSolicitada = true;
     fallo = '';
     revision = revisarEntrada(estado);
@@ -133,6 +140,7 @@ export function iniciarInterfaz(raiz) {
     worker.onmessage = ({ data }) => {
       detenerEvaluacion();
       estado.resultado = data.resultado;
+      estado.tablaCuantificadores = data.tablaCuantificadores;
       revision.errores = data.errores;
       revision.valido = Object.values(data.errores).every((lista) => !lista.length);
       renderizar();

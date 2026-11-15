@@ -2,6 +2,7 @@ import { aCadena, aCadenaCompleta } from '../../sintaxis/index.js';
 import { escapar, erroresHTML } from '../componentes/comunes.js';
 import { dictamen, casosHTML, explicacionHTML } from './resultados.js';
 import { panelArbolHTML } from '../arbol/visor.js';
+import { panelCuantificadoresHTML } from '../cuantificadores/visor.js';
 
 const SIMBOLOS = [['¬', 'Negación'], ['∧', 'Conjunción'], ['∨', 'Disyunción'], ['→', 'Implicación'], ['∀', 'Para todo'], ['∃', 'Existe'], ['(', 'Abrir paréntesis'], [')', 'Cerrar paréntesis']];
 
@@ -32,5 +33,6 @@ export function formula(estado, revision, ocupado, fallo) {
       <div id="casos-preview">${casosHTML(estado.resultado)}</div>
     </section><div id="dictamen-contenedor">${dictamen(estado, revision, ocupado, fallo)}</div>
     ${panelArbolHTML()}</div>
+    <div id="cuantificadores-contenedor">${estado.resultado ? panelCuantificadoresHTML(estado.tablaCuantificadores) : ''}</div>
     <div id="explicacion-contenedor">${explicacionHTML(estado.resultado)}</div>`;
 }

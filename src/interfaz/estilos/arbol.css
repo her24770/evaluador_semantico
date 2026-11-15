@@ -8,7 +8,7 @@
 .arbol-controles output { min-width: 62px; text-align: center; font: 13px var(--mono); }
 .arbol-cuerpo { display: grid; grid-template-columns: minmax(0, 1fr) 272px; gap: 24px; align-items: start; }
 .arbol-grafico { min-width: 0; }
-.arbol-ventana { height: 370px; overflow: auto; border: 1px solid var(--linea); border-radius: var(--radio-control); background: var(--panel); scrollbar-color: var(--borde) var(--panel); scrollbar-width: thin; overscroll-behavior: contain; }
+.arbol-ventana { height: 370px; overflow: auto; border: 1px solid var(--linea); border-radius: var(--radio-control); background: var(--panel); scrollbar-color: var(--borde) var(--panel); scrollbar-width: thin; overscroll-behavior: auto; }
 .arbol-svg { display: block; max-width: none; margin-inline: auto; }
 .arbol-conexiones { fill: none; stroke: var(--tiza-suave); stroke-width: 1.5; }
 .arbol-nodo { color: var(--tiza); cursor: pointer; outline: none; }

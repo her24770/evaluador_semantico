@@ -1,11 +1,10 @@
 import { analizar, validarLenguaje, variablesLibres, variablesLigadas, ErrorLogico } from '../sintaxis/index.js';
-import { validarInterpretacion, validarEntorno, evaluar } from '../semantica/index.js';
+import { validarInterpretacion, validarEntorno, evaluar, evaluarExhaustivo, contieneCuantificadores } from '../semantica/index.js';
 
-// Solo se conserva entrada del usuario. El AST y los resultados se derivan de ella.
 export function crearEstado() {
   return {
     seccion: 'lenguaje', funciones: [], predicados: [], dominioTexto: '',
-    formula: '', entorno: {}, resultado: null, evaluacionSolicitada: false,
+    formula: '', entorno: {}, resultado: null, tablaCuantificadores: null, evaluacionSolicitada: false,
   };
 }
 
@@ -16,7 +15,6 @@ export function leerDominioUI(texto) {
   return { errores, dominio: interpretacion?.dominio ?? [] };
 }
 
-// Enumeración para los controles de la tabla, sin interpretar fórmulas ni relaciones.
 export function tuplaEn(dominio, aridad, indice) {
   const tupla = Array(aridad);
   for (let i = aridad - 1; i >= 0; i--) {
@@ -49,8 +47,6 @@ export function revisarEntrada(estado) {
       errores.formula.push(error);
     }
 
-    // El validador semántico genera Dⁿ completo. Evitamos bloquear el navegador
-    // antes de llamarlo y explicamos este límite operativo de la interfaz.
     const tablaGrande = estado.funciones.some(({ aridad }) =>
       Number(aridad) > 32 || dominioLeido.dominio.length ** Number(aridad) > MAX_CASILLAS);
     if (tablaGrande && !dominioLeido.errores.length) {
@@ -87,20 +83,24 @@ export function revisarEntrada(estado) {
   };
 }
 
-export function evaluarEntrada(estado) {
+export function evaluarEntrada(estado, opcionesTabla) {
   const revision = revisarEntrada(estado);
-  if (!revision.valido) return { ...revision, resultado: null };
+  if (!revision.valido) return { ...revision, resultado: null, tablaCuantificadores: null };
   try {
-    return { ...revision, resultado: evaluar(revision.ast, revision.interpretacion, revision.entorno) };
+    const resultado = evaluar(revision.ast, revision.interpretacion, revision.entorno);
+    const tablaCuantificadores = contieneCuantificadores(revision.ast)
+      ? evaluarExhaustivo(revision.ast, revision.interpretacion, revision.entorno, opcionesTabla) : null;
+    return { ...revision, resultado, tablaCuantificadores };
   } catch (error) {
     if (!(error instanceof ErrorLogico)) throw error;
     const seccion = error.categoria === 'entorno' ? 'entorno' : 'interpretacion';
     revision.errores[seccion].push(error);
-    return { ...revision, valido: false, resultado: null };
+    return { ...revision, valido: false, resultado: null, tablaCuantificadores: null };
   }
 }
 
 export function invalidarResultado(estado) {
   estado.resultado = null;
+  estado.tablaCuantificadores = null;
   estado.evaluacionSolicitada = false;
 }
