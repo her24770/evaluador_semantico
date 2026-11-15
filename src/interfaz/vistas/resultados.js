@@ -24,8 +24,13 @@ export function dictamen(estado, revision, ocupado = false, fallo = '') {
   if (ocupado) return `<aside class="panel dictamen" aria-busy="true"><p class="etiqueta">Resultado</p><h2 class="titulo-tiza">Evaluando…</h2><button type="button" class="boton secundario" data-action="cancelar">Cancelar evaluación</button></aside>`;
   if (!resultado) {
     const hayErrores = estado.evaluacionSolicitada && !revision.valido;
-    return `<aside class="panel dictamen"><p class="etiqueta">Resultado</p><h2 class="titulo-tiza">${fallo ? 'Evaluación interrumpida' : hayErrores ? 'Entradas inválidas' : 'Sin evaluar'}</h2>
-      <p class="ayuda">${fallo ? escapar(fallo) : hayErrores ? 'Corrige los errores para evaluar la fórmula.' : 'Evalúa la fórmula para obtener un resultado.'}</p>
+    // Un error de "límite" no es una entrada mal escrita: la fórmula es demasiado grande para evaluarla.
+    const soloLimite = hayErrores && Object.values(revision.errores).flat().every((e) => e.categoria === 'límite');
+    const titulo = fallo ? 'Evaluación interrumpida' : soloLimite ? 'Fórmula demasiado grande' : hayErrores ? 'Entradas inválidas' : 'Sin evaluar';
+    const ayuda = fallo ? escapar(fallo) : soloLimite ? 'Las entradas son correctas, pero evaluarlas tomaría demasiada memoria.'
+      : hayErrores ? 'Corrige los errores para evaluar la fórmula.' : 'Evalúa la fórmula para obtener un resultado.';
+    return `<aside class="panel dictamen"><p class="etiqueta">Resultado</p><h2 class="titulo-tiza">${titulo}</h2>
+      <p class="ayuda">${ayuda}</p>
       ${hayErrores ? Object.entries(revision.errores).filter(([, e]) => e.length).map(([seccion, errores]) => `<div class="grupo-error"><button type="button" class="enlace" data-action="navegar" data-seccion="${seccion}">Revisar ${seccion === 'interpretacion' ? 'interpretación' : seccion === 'formula' ? 'fórmula' : seccion}</button>${erroresHTML(errores, seccion)}</div>`).join('') : ''}
       </aside>`;
   }

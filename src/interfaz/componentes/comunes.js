@@ -9,6 +9,14 @@ export function erroresHTML(errores, seccion) {
   </li>`).join('')}</ul>`;
 }
 
+// Lee solo propiedades propias: una clave "toString" o "constructor" no debe leer el prototipo.
+export const propio = (objeto, clave) => (objeto && Object.hasOwn(objeto, clave) ? objeto[clave] : undefined);
+
+// Guarda la clave como propiedad propia: con "objeto[clave] = valor", la clave "__proto__" se perdería.
+export function guardarPropio(objeto, clave, valor) {
+  Object.defineProperty(objeto, clave, { value: valor, writable: true, enumerable: true, configurable: true });
+}
+
 export function opciones(dominio, valor = '') {
   return `<option value="">Elegir elemento</option>
     ${valor && !dominio.includes(valor) ? `<option value="${escapar(valor)}" selected>${escapar(valor)} (fuera del dominio)</option>` : ''}

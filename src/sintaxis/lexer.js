@@ -50,7 +50,10 @@ export function tokenizar(texto) {
     const m = RE_IDENT.exec(texto);
     if (m) {
       const palabra = m[0];
-      tokens.push({ tipo: PALABRAS[palabra.toLowerCase()] ?? 'IDENT', texto: palabra, pos: i });
+      // Object.hasOwn: si no, "constructor" o "toString" se leerían del prototipo de PALABRAS.
+      const clave = palabra.toLowerCase();
+      const tipo = Object.hasOwn(PALABRAS, clave) ? PALABRAS[clave] : 'IDENT';
+      tokens.push({ tipo, texto: palabra, pos: i });
       i += palabra.length;
       continue;
     }
