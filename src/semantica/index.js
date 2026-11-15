@@ -8,4 +8,4 @@
  */
 export { validarInterpretacion } from './interpretacion.js';
 export { validarEntorno } from './entorno.js';
-export { evaluar } from './evaluador.js';
+export { evaluar, evaluarExhaustivo, contieneCuantificadores } from './evaluador.js';
