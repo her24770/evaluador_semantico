@@ -25,3 +25,16 @@ npm test         # corre las pruebas
 
 - `docs/CONTRATO.md`: qué datos se pasan entre los módulos
 - `docs/REPARTO.md`: tareas de cada persona
+
+## Teoría del curso y búsqueda local
+
+Las transcripciones de los temas 01–14 están en [`teoria/`](teoria/README.md).
+Los PDF originales se conservan localmente y no se incluyen en Git.
+Para buscar fragmentos sin consumir una API:
+
+```bash
+npm run buscar:teoria -- "¿Qué es una variable libre?"
+```
+
+La búsqueda todavía no es un chatbot. El estado de la integración y los
+siguientes bloques están en [`docs/ASISTENTE.md`](docs/ASISTENTE.md).
