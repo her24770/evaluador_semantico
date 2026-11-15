@@ -8,6 +8,7 @@ import { interpretacion } from './vistas/interpretacion.js';
 import { formula, feedbackFormula } from './vistas/formula.js';
 import { entorno } from './vistas/entorno.js';
 import { dictamen, casosHTML } from './vistas/resultados.js';
+import { montarArbol } from './arbol/visor.js';
 
 export function iniciarInterfaz(raiz) {
   const estado = crearEstado();
@@ -19,6 +20,7 @@ export function iniciarInterfaz(raiz) {
   let worker = null;
   let temporizador;
   let fallo = '';
+  let visorArbol = null;
   const $ = (selector) => raiz.querySelector(selector);
   raiz.innerHTML = estructura();
 
@@ -36,6 +38,7 @@ export function iniciarInterfaz(raiz) {
   }
 
   function renderizar(enfocar = false) {
+    visorArbol?.destruir();
     const indice = SECCIONES.findIndex((s) => s.id === estado.seccion);
     const actual = SECCIONES[indice];
     raiz.dataset.vista = actual.id;
@@ -54,6 +57,7 @@ export function iniciarInterfaz(raiz) {
     $('#vista').innerHTML = vistas[actual.id]() + `<div class="acciones-pagina">
       ${indice ? `<button type="button" class="enlace" data-action="navegar" data-seccion="${SECCIONES[indice - 1].id}">← ${SECCIONES[indice - 1].nombre}</button>` : '<span></span>'}
       ${indice < 3 ? `<button type="button" class="boton ${indice === 2 ? 'secundario' : 'primario'}" data-action="navegar" data-seccion="${SECCIONES[indice + 1].id}">Continuar a ${SECCIONES[indice + 1].nombre.toLowerCase()} →</button>` : indice === 3 ? '<button type="button" class="boton primario" data-action="evaluar">Evaluar fórmula →</button>' : ''}</div>`;
+    visorArbol = montarArbol($('#arbol-sintactico'), revision);
     const barra = $('.navegacion');
     const activo = $(`.navegacion button[aria-current]`).getBoundingClientRect();
     const limites = barra.getBoundingClientRect();
@@ -84,6 +88,7 @@ export function iniciarInterfaz(raiz) {
       ['#explicacion-contenedor', ''],
     ];
     cambios.forEach(([selector, html]) => { const destino = $(selector); if (destino) destino.innerHTML = html; });
+    visorArbol?.actualizar(revision);
     const botonEvaluar = $('[data-action="evaluar"]');
     if (botonEvaluar) botonEvaluar.disabled = false;
     const resumen = $('#entorno-resumen');
