@@ -1,0 +1,29 @@
+.foto-panel { grid-column: 1 / -1; }
+.foto-cabecera { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; margin-bottom: 12px; }
+.foto-config { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 8px 16px; margin: 0 0 16px; padding: 16px; border: 1px solid var(--linea); border-radius: var(--radio-control); background: var(--panel); }
+.foto-config .ayuda { grid-column: 1 / -1; margin: 0; }
+.foto-config .enlace { display: block; }
+.foto-subir { position: relative; cursor: pointer; }
+.foto-subir:focus-within { outline: 2px solid var(--amarillo); outline-offset: 2px; }
+/* El input real queda encima del botón, invisible, para que funcione con teclado y lectores de pantalla. */
+.foto-archivo { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.foto-subir + .ayuda { margin-top: 10px; }
+.foto-contenido { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 20px; align-items: start; margin-top: 16px; }
+.foto-contenido.ampliada { grid-template-columns: minmax(0, 1fr); }
+.foto-miniatura { display: block; width: 100%; padding: 0; border: 1px solid var(--borde); border-radius: var(--radio-control); background: #fff; cursor: zoom-in; overflow: hidden; }
+.foto-contenido.ampliada .foto-miniatura { cursor: zoom-out; }
+.foto-miniatura img { display: block; width: 100%; max-height: 320px; object-fit: contain; }
+.foto-contenido.ampliada .foto-miniatura img { max-height: 80vh; }
+.foto-lectura { display: grid; gap: 10px; min-width: 0; }
+.foto-lectura > p, .foto-lectura .errores { margin: 0; }
+.foto-texto { margin: 0; font-size: clamp(20px, 2.4vw, 28px); line-height: 1.4; }
+.simbolos-foto button { height: 40px; font-size: 20px; }
+.foto-dudas ul { margin: 6px 0 0; padding-left: 20px; font-size: 14px; }
+.foto-dudas li { margin-bottom: 4px; overflow-wrap: anywhere; }
+#foto-revision > p { margin: 0 0 6px; overflow-wrap: anywhere; }
+.foto-no-operable { color: var(--coral); font-weight: 600; }
+.foto-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 6px; }
+@media (max-width: 640px) {
+  .foto-config, .foto-contenido { grid-template-columns: minmax(0, 1fr); }
+  .simbolos-foto { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

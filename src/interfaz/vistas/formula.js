@@ -1,11 +1,10 @@
 import { aCadena, aCadenaCompleta } from '../../sintaxis/index.js';
-import { escapar, erroresHTML } from '../componentes/comunes.js';
+import { escapar, erroresHTML, SIMBOLOS } from '../componentes/comunes.js';
 import { panelArbolHTML } from '../arbol/visor.js';
 import { panelSustitucionHTML } from '../sustitucion/vista.js';
+import { panelFotoHTML } from '../foto/vista.js';
 import { resumenInterpretacionHTML } from '../componentes/resumen.js';
 import { seccionPendiente } from '../modelo.js';
-
-const SIMBOLOS = [['¬', 'Negación'], ['∧', 'Conjunción'], ['∨', 'Disyunción'], ['→', 'Implicación'], ['∀', 'Para todo'], ['∃', 'Existe'], ['(', 'Abrir paréntesis'], [')', 'Cerrar paréntesis']];
 
 export function feedbackFormula(estado, revision) {
   if (revision.errores.lenguaje.length) return '<p class="ayuda">Revisa el lenguaje para analizar la fórmula.</p>';
@@ -24,7 +23,7 @@ export function accionesFormulaHTML(revision, ocupado = false) {
   return `<button type="button" class="boton primario" data-action="evaluar" ${!revision.ast ? 'disabled' : ''}>${texto} <span aria-hidden="true">→</span></button><span class="atajo">Ctrl / ⌘ + Enter</span>`;
 }
 
-export function formula(estado, revision, ocupado = false) {
+export function formula(estado, revision, ocupado = false, configFoto = { clave: '', modelo: '' }) {
   return `<div class="rejilla-formula">
     <section class="panel panel-formula"><label for="formula" class="etiqueta">Fórmula</label>
       <textarea id="formula" class="editor-formula" data-entrada="formula" rows="2" placeholder="Escribe tu fórmula…" spellcheck="false" autocomplete="off" aria-describedby="formula-feedback">${escapar(estado.formula)}</textarea>
@@ -32,6 +31,7 @@ export function formula(estado, revision, ocupado = false) {
       <p class="ayuda leyenda-simbolos">Panel de símbolos</p><div class="simbolos" role="group" aria-label="Insertar símbolo matemático">${SIMBOLOS.map(([s, n]) => `<button type="button" data-action="insertar" data-simbolo="${s}" aria-label="Insertar ${n.toLowerCase()}" title="${n}">${s}</button>`).join('')}</div>
       <div id="acciones-formula" class="acciones-editor">${accionesFormulaHTML(revision, ocupado)}</div>
     </section>${resumenInterpretacionHTML(estado, revision)}
+    ${panelFotoHTML(estado, configFoto)}
     ${panelArbolHTML()}
     ${panelSustitucionHTML(estado, revision)}</div>`;
 }
