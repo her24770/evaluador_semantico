@@ -9,16 +9,22 @@ const FUENTES = [
   '400 16px "Architects Daughter"',
 ];
 
-export async function esperarFuentes({ fuentes = globalThis.document?.fonts, tiempoMaximo = 2000 } = {}) {
+async function cargarFuentes(fuentes) {
   if (!fuentes?.load) return false;
+  try {
+    const caras = await Promise.all(FUENTES.map((fuente) => fuentes.load(fuente)));
+    // Una lista vacía significa que no existe una @font-face coincidente.
+    if (caras.some((lista) => !lista.length)) return false;
+    await fuentes.ready;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function esperarCarga(carga, tiempoMaximo) {
   let temporizador;
   try {
-    const carga = Promise.all(FUENTES.map((fuente) => fuentes.load(fuente))).then(async (caras) => {
-      // Una lista vacía significa que no existe una @font-face coincidente.
-      if (caras.some((lista) => !lista.length)) return false;
-      await fuentes.ready;
-      return true;
-    });
     const limite = new Promise((resolver) => {
       temporizador = setTimeout(() => resolver(false), tiempoMaximo);
     });
@@ -30,11 +36,20 @@ export async function esperarFuentes({ fuentes = globalThis.document?.fonts, tie
   }
 }
 
-export async function prepararFuentes(app) {
-  const listas = await esperarFuentes();
-  // Si se supera el límite, conservamos las fuentes del sistema durante esta
-  // visita. Una descarga tardía no vuelve a cambiar la tipografía visible.
-  app.ownerDocument.documentElement.dataset.fuentes = listas ? 'listas' : 'alternativas';
+export async function esperarFuentes({ fuentes = globalThis.document?.fonts, tiempoMaximo = 2000 } = {}) {
+  return esperarCarga(cargarFuentes(fuentes), tiempoMaximo);
+}
+
+export async function prepararFuentes(app, { fuentes = app.ownerDocument.fonts, tiempoMaximo = 2000 } = {}) {
+  const raiz = app.ownerDocument.documentElement;
+  raiz.dataset.fuentes = 'cargando';
+  const carga = cargarFuentes(fuentes).then((listas) => {
+    // También se actualiza si las fuentes llegan después del primer render.
+    raiz.dataset.fuentes = listas ? 'listas' : 'alternativas';
+    return listas;
+  });
+  // Una red lenta no bloquea la interfaz ni impide usar las fuentes al llegar.
+  await esperarCarga(carga, tiempoMaximo);
   app.removeAttribute('aria-busy');
   app.removeAttribute('inert');
 }

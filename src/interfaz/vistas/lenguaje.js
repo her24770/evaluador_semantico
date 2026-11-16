@@ -44,5 +44,5 @@ export function lenguaje(estado, revision) {
     ${panel('Funciones', declaraciones(estado.funciones, 'funciones'))}
     ${panel('Predicados', declaraciones(estado.predicados, 'predicados'))}
     <div id="errores-lenguaje" aria-live="polite">${erroresHTML(revision.errores.lenguaje, 'lenguaje')}</div>
-    </div>${panel('Firma del lenguaje', `<div id="firma-resumen">${firmaHTML(revision)}</div><div class="nota"><h3>Símbolos lógicos</h3><p class="expresion">¬ ∧ ∨ → ↔ ∀ ∃ =</p></div>`, 'panel-datos')}</div>`;
+    </div>${panel('Símbolos del lenguaje', `<div id="firma-resumen">${firmaHTML(revision)}</div><div class="nota"><h3>Símbolos lógicos</h3><p class="expresion">¬ ∧ ∨ → ↔ ∀ ∃ =</p></div>`, 'panel-datos')}</div>`;
 }
