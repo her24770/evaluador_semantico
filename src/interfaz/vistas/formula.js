@@ -23,7 +23,7 @@ export function accionesFormulaHTML(revision, ocupado = false) {
   return `<button type="button" class="boton primario" data-action="evaluar" ${!revision.ast ? 'disabled' : ''}>${texto} <span aria-hidden="true">→</span></button><span class="atajo">Ctrl / ⌘ + Enter</span>`;
 }
 
-export function formula(estado, revision, ocupado = false, configFoto = { clave: '', modelo: '' }) {
+export function formula(estado, revision, ocupado = false) {
   return `<div class="rejilla-formula">
     <section class="panel panel-formula"><label for="formula" class="etiqueta">Fórmula</label>
       <textarea id="formula" class="editor-formula" data-entrada="formula" rows="2" placeholder="Escribe tu fórmula…" spellcheck="false" autocomplete="off" aria-describedby="formula-feedback">${escapar(estado.formula)}</textarea>
@@ -31,7 +31,7 @@ export function formula(estado, revision, ocupado = false, configFoto = { clave:
       <p class="ayuda leyenda-simbolos">Panel de símbolos</p><div class="simbolos" role="group" aria-label="Insertar símbolo matemático">${SIMBOLOS.map(([s, n]) => `<button type="button" data-action="insertar" data-simbolo="${s}" aria-label="Insertar ${n.toLowerCase()}" title="${n}">${s}</button>`).join('')}</div>
       <div id="acciones-formula" class="acciones-editor">${accionesFormulaHTML(revision, ocupado)}</div>
     </section>${resumenInterpretacionHTML(estado, revision)}
-    ${panelFotoHTML(estado, configFoto)}
+    ${panelFotoHTML(estado)}
     ${panelArbolHTML()}
     ${panelSustitucionHTML(estado, revision)}</div>`;
 }

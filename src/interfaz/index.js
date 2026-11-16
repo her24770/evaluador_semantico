@@ -13,7 +13,7 @@ import { montarArbol } from './arbol/visor.js';
 import { resultadoSustitucionHTML, calcularSustitucion } from './sustitucion/vista.js';
 import { aCadena, simbolosNoDeclarados } from '../sintaxis/index.js';
 import { panelFotoHTML, revisionFotoHTML } from './foto/vista.js';
-import { leerFormulaDeFoto, cargarConfiguracion, guardarConfiguracion } from './foto/lector.js';
+import { leerFormulaDeFoto } from './foto/lector.js';
 import { prepararImagen } from './foto/imagen.js';
 import { montarTablaCuantificadores } from './cuantificadores/visor.js';
 import { montarAsistente } from './asistente.js';
@@ -30,8 +30,6 @@ export function iniciarInterfaz(raiz) {
   let fallo = '';
   let visorArbol = null;
   let visorCuantificadores = null;
-  // La API key vive fuera de `estado` para que nunca se envíe al worker.
-  const configFoto = cargarConfiguracion();
   let lecturaFoto = null;
   const $ = (selector) => raiz.querySelector(selector);
   raiz.innerHTML = estructura();
@@ -65,7 +63,7 @@ export function iniciarInterfaz(raiz) {
     const vistas = {
       lenguaje: () => lenguaje(estado, revision),
       interpretacion: () => interpretacion(estado, revision, paginas),
-      formula: () => formula(estado, revision, ocupado, configFoto),
+      formula: () => formula(estado, revision, ocupado),
       entorno: () => entorno(estado, revision),
       resultados: () => resultados(estado, revision, ocupado, fallo),
     };
@@ -132,25 +130,22 @@ export function iniciarInterfaz(raiz) {
 
   function refrescarFoto(enfocar) {
     const panelFoto = $('#foto-panel');
-    if (panelFoto) panelFoto.outerHTML = panelFotoHTML(estado, configFoto);
+    if (panelFoto) panelFoto.outerHTML = panelFotoHTML(estado);
     if (enfocar) $(enfocar)?.focus();
   }
 
   async function cargarFoto(archivo) {
     if (!archivo) return;
     lecturaFoto?.abort();
-    const { configurando } = estado.foto;
     try {
-      const imagen = await prepararImagen(archivo);
-      estado.foto = { ...crearEstadoFoto(), imagen, configurando };
+      estado.foto = { ...crearEstadoFoto(), imagen: await prepararImagen(archivo) };
     } catch (error) {
-      estado.foto = { ...crearEstadoFoto(), configurando, fase: 'error', error: error.message };
+      estado.foto = { ...crearEstadoFoto(), fase: 'error', error: error.message };
       refrescarFoto();
       anunciar(error.message);
       return;
     }
-    if (configFoto.clave) leerFoto();
-    else { estado.foto.configurando = true; refrescarFoto('#foto-clave'); anunciar('Foto cargada. Pega tu API key de OpenAI para leerla.'); }
+    leerFoto();
   }
 
   async function leerFoto() {
@@ -164,7 +159,7 @@ export function iniciarInterfaz(raiz) {
     anunciar('Leyendo la fórmula de la foto…');
     try {
       const r = await leerFormulaDeFoto({
-        imagen: estado.foto.imagen, clave: configFoto.clave, modelo: configFoto.modelo, senal: control.signal,
+        imagen: estado.foto.imagen, senal: control.signal,
         simbolos: [...estado.funciones, ...estado.predicados].map((s) => s.nombre.trim()).filter(Boolean),
       });
       if (lecturaFoto !== control) return;
@@ -189,11 +184,6 @@ export function iniciarInterfaz(raiz) {
       if (destino) destino.innerHTML = revisionFotoHTML(estado);
       const usar = $('[data-action="usar-foto"]');
       if (usar) usar.disabled = !elemento.value.trim();
-      return;
-    }
-    if (d.fotoConfig) {
-      configFoto[d.fotoConfig] = elemento.value.trim();
-      guardarConfiguracion(configFoto);
       return;
     }
     // La sustitución no cambia la fórmula ni el resultado: solo se recalcula su panel.
@@ -317,15 +307,13 @@ export function iniciarInterfaz(raiz) {
           insertarSimbolo(destino, d.simbolo, document.activeElement === destino ? undefined : { inicio: fin, fin });
         } else insertarSimbolo($('#formula'), d.simbolo, seleccion);
         break;
-      case 'config-foto': estado.foto.configurando = !estado.foto.configurando; refrescarFoto(estado.foto.configurando ? '#foto-clave' : '[data-action="config-foto"]'); break;
-      case 'borrar-clave-foto': configFoto.clave = ''; guardarConfiguracion(configFoto); refrescarFoto('#foto-clave'); anunciar('Se borró la API key de este navegador.'); break;
       case 'leer-foto': leerFoto(); break;
       case 'cancelar-foto': lecturaFoto?.abort(); break;
       case 'ampliar-foto': estado.foto.ampliada = !estado.foto.ampliada; refrescarFoto('[data-action="ampliar-foto"]'); break;
       case 'descartar-foto': {
         lecturaFoto?.abort();
         lecturaFoto = null;
-        estado.foto = { ...crearEstadoFoto(), configurando: estado.foto.configurando };
+        estado.foto = crearEstadoFoto();
         refrescarFoto('.foto-archivo');
         break;
       }

@@ -11,7 +11,7 @@ export function crearEstado() {
 
 /** Panel "Leer fórmula desde una foto". fase: vacio | leyendo | listo | error */
 export function crearEstadoFoto() {
-  return { imagen: '', texto: '', leida: '', dudas: [], fase: 'vacio', error: '', ampliada: false, configurando: false };
+  return { imagen: '', texto: '', leida: '', dudas: [], fase: 'vacio', error: '', ampliada: false };
 }
 
 export function leerDominioUI(texto) {

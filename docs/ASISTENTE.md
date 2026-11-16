@@ -43,6 +43,7 @@ La ruta `POST /api/chat` responde exclusivamente preguntas teóricas mediante Op
 | `scripts/consultar-asistente.js` | Consulta de prueba desde la terminal. |
 | `vite.config.js` | Proxy local de `/api` al backend. |
 | `vercel.json` | Configuración de la compilación y de los archivos de teoría que necesita la función. |
+| `src/asistente/foto.js`, `api/leer-foto.js` | Leer una fórmula desde una foto (ver «Lectura de fotos»). |
 
 ### Configuración local
 
@@ -117,6 +118,10 @@ El límite de bytes es un control de tamaño, no un cálculo exacto de tokens. L
 Este es ahora un servicio de pago por uso de OpenAI. El presupuesto de tamaño y los límites de frecuencia reducen el consumo, pero no implementan un tope acumulado en dólares. Para estimar costo, aplicar la tarifa vigente del modelo a los tokens de entrada y salida, considerando descuentos de caché cuando correspondan. Las respuestas incompletas o canceladas también pueden consumir tokens; el registro mostrado por la terminal cubre las consultas que terminaron correctamente, no sustituye el panel de consumo de la cuenta. No se usan herramientas de búsqueda web, almacenamiento vectorial de pago ni carga de PDF a OpenAI.
 
 Se permiten seis consultas por minuto y una petición en curso **por instancia del servidor**. En Vercel pueden existir varias instancias y los contadores se reinician al reiniciar una instancia. Esto contiene el consumo de una demostración local; no es un límite global persistente ni una garantía de cuota para una publicación concurrida. Si se necesita un control global, habrá que usar una protección del alojamiento o un almacenamiento compartido.
+
+### Lectura de fotos
+
+`POST /api/leer-foto` recibe `{ "imagen": "data:image/jpeg;base64,…", "simbolos": ["P", "R"] }` (JPG, PNG o WEBP, hasta 3 MB; hasta 50 símbolos) y responde `{ formula, legible, dudas, modelo, consumo }`. Reutiliza `crearClienteOpenAI`, `crearManejador` (mismo control de origen, tipo de contenido y límite de seis consultas por minuto por instancia) y los mismos errores. `crearManejador` recibe ahora `validar` y `maxBytes`, con los valores del chat por omisión. El navegador reduce la foto a 1600 px antes de enviarla; la interfaz normaliza la notación y la persona corrige lo leído antes de usarlo como fórmula. `gpt-6-luna` acepta imágenes como entrada; si `OPENAI_MODEL` se cambia por un modelo sin visión, este endpoint fallará.
 
 ### Alojamiento elegido y publicación pendiente
 

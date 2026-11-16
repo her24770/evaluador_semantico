@@ -5,6 +5,8 @@
  */
 const LADO_MAXIMO = 1600;
 const PESO_MAXIMO = 20 * 1024 * 1024;
+// El servidor acepta hasta 3 MB de data URL (src/asistente/foto.js).
+const MAX_DATA_URL = 2_900_000;
 
 /** @returns {Promise<string>} data URL JPEG */
 export async function prepararImagen(archivo) {
@@ -18,7 +20,19 @@ export async function prepararImagen(archivo) {
   } catch {
     throw new Error('El navegador no pudo abrir esta imagen. Si es HEIC (iPhone), conviértela a JPG o toma una captura de pantalla.');
   }
-  const escala = Math.min(1, LADO_MAXIMO / Math.max(bitmap.width, bitmap.height));
+  let lado = LADO_MAXIMO;
+  let datos;
+  // Si una foto con mucho detalle queda pesada, se achica un poco más.
+  do {
+    datos = codificar(bitmap, lado);
+    lado = Math.round(lado * 0.75);
+  } while (datos.length > MAX_DATA_URL && lado > 400);
+  bitmap.close?.();
+  return datos;
+}
+
+function codificar(bitmap, lado) {
+  const escala = Math.min(1, lado / Math.max(bitmap.width, bitmap.height));
   const lienzo = document.createElement('canvas');
   lienzo.width = Math.round(bitmap.width * escala);
   lienzo.height = Math.round(bitmap.height * escala);
@@ -27,6 +41,5 @@ export async function prepararImagen(archivo) {
   contexto.fillStyle = '#fff';
   contexto.fillRect(0, 0, lienzo.width, lienzo.height);
   contexto.drawImage(bitmap, 0, 0, lienzo.width, lienzo.height);
-  bitmap.close?.();
   return lienzo.toDataURL('image/jpeg', 0.88);
 }

@@ -11,14 +11,14 @@ function enviar(res, estado, datos) {
   res.end(JSON.stringify(datos));
 }
 
-async function leerJSON(req) {
-  if (Number(req.headers['content-length']) > MAX_CUERPO_BYTES) {
+async function leerJSON(req, maxBytes) {
+  if (Number(req.headers['content-length']) > maxBytes) {
     throw new ErrorAsistente('cuerpo_grande', 'La consulta supera el tamaño permitido.', 413);
   }
   if (req.body !== undefined) {
     // Vercel puede entregar el cuerpo ya interpretado; el servidor local entrega un stream.
     const texto = typeof req.body === 'string' || Buffer.isBuffer(req.body) ? req.body.toString() : JSON.stringify(req.body);
-    if (Buffer.byteLength(texto) > MAX_CUERPO_BYTES) throw new ErrorAsistente('cuerpo_grande', 'La consulta supera el tamaño permitido.', 413);
+    if (Buffer.byteLength(texto) > maxBytes) throw new ErrorAsistente('cuerpo_grande', 'La consulta supera el tamaño permitido.', 413);
     return JSON.parse(texto);
   }
   return new Promise((resolve, reject) => {
@@ -26,7 +26,7 @@ async function leerJSON(req) {
     let bytes = 0;
     req.on('data', (trozo) => {
       bytes += trozo.length;
-      if (bytes > MAX_CUERPO_BYTES) {
+      if (bytes > maxBytes) {
         reject(new ErrorAsistente('cuerpo_grande', 'La consulta supera el tamaño permitido.', 413));
       } else trozos.push(trozo);
     });
@@ -39,8 +39,11 @@ async function leerJSON(req) {
   });
 }
 
-/** Límite compartido por instancia: seis consultas por minuto y una en curso. */
-export function crearManejador(obtenerServicio, { ahora = Date.now } = {}) {
+/**
+ * Límite compartido por instancia: seis consultas por minuto y una en curso.
+ * Lo usan el chat (/api/chat) y la lectura de fotos (/api/leer-foto), cada uno con su validación y tamaño máximo.
+ */
+export function crearManejador(obtenerServicio, { ahora = Date.now, validar = validarConsulta, maxBytes = MAX_CUERPO_BYTES } = {}) {
   let inicio = 0;
   let consultas = 0;
   let ocupado = false;
@@ -63,12 +66,12 @@ export function crearManejador(obtenerServicio, { ahora = Date.now } = {}) {
         throw new ErrorAsistente('tipo_no_permitido', 'Envía la consulta como application/json.', 415);
       }
       let datos;
-      try { datos = await leerJSON(req); }
+      try { datos = await leerJSON(req, maxBytes); }
       catch (error) {
         if (error instanceof SyntaxError) throw new ErrorAsistente('json_invalido', 'El cuerpo debe ser JSON válido.', 400);
         throw error;
       }
-      validarConsulta(datos);
+      validar(datos);
       const tiempo = ahora();
       if (tiempo - inicio >= 60000) { inicio = tiempo; consultas = 0; }
       if (ocupado || consultas >= 6) {

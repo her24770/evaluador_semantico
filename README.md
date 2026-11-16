@@ -15,9 +15,9 @@ npm test         # corre las pruebas
 
 ### Leer fórmula desde una foto
 
-En la vista **Fórmula**, el panel "Leer fórmula desde una foto" usa la API de OpenAI.
-Cada persona pega su propia API key en **⚙ Configurar**, y la key se guarda solo en su navegador.
-**Nunca** la pongas en el código, en el repositorio ni en un `.env` con `VITE_`, porque Vite la publicaría dentro de la app.
+En la vista **Fórmula**, el panel "Leer fórmula desde una foto" envía la imagen a `POST /api/leer-foto`.
+Ese endpoint usa el mismo backend, la misma clave (`OPENAI_API_KEY`) y el mismo modelo (`OPENAI_MODEL`) que el asistente;
+el navegador nunca ve la clave. En local hay que tener corriendo `npm run dev:asistente` además de `npm run dev`.
 Lo leído siempre se puede corregir antes de usarlo, y la app avisa si falta declarar algún símbolo.
 
 ## Organización

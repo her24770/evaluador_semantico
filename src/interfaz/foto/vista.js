@@ -7,16 +7,11 @@ import { simbolosNoDeclarados } from '../../sintaxis/index.js';
 import { escapar, erroresHTML, SIMBOLOS } from '../componentes/comunes.js';
 import { revisarEntrada } from '../modelo.js';
 
-/** @param {{clave: string, modelo: string}} config  vive fuera de `estado` para no enviarla al worker */
-export function panelFotoHTML(estado, config) {
+export function panelFotoHTML(estado) {
   const foto = estado.foto;
   return `<section class="panel foto-panel" id="foto-panel" aria-labelledby="foto-titulo">
-    <div class="foto-cabecera">
-      <h2 id="foto-titulo" class="titulo-tiza">Leer fórmula desde una foto</h2>
-      <button type="button" class="enlace" data-action="config-foto" aria-expanded="${foto.configurando}" aria-controls="foto-config">⚙ Configurar</button>
-    </div>
-    ${foto.configurando ? configuracionHTML(config) : ''}
-    ${!config.clave && !foto.configurando ? '<p class="ayuda">Para leer fotos necesitas una API key de OpenAI. Pégala en <strong>⚙ Configurar</strong>.</p>' : ''}
+    <h2 id="foto-titulo" class="titulo-tiza">Leer fórmula desde una foto</h2>
+    <p class="ayuda">Sube una foto o captura de una fórmula. La app la lee, te deja corregirla y te dice si se puede evaluar.</p>
     <label class="boton secundario foto-subir">📷 ${foto.imagen ? 'Cambiar foto' : 'Subir o tomar foto'}
       <input type="file" accept="image/*" data-foto="archivo" class="foto-archivo">
     </label>
@@ -29,19 +24,6 @@ export function panelFotoHTML(estado, config) {
       <div class="foto-lectura">${lecturaHTML(estado)}</div>
     </div>` : ''}
   </section>`;
-}
-
-function configuracionHTML(config) {
-  return `<div id="foto-config" class="foto-config">
-    <label for="foto-clave">API key de OpenAI
-      <input id="foto-clave" type="password" class="mono" data-foto-config="clave" value="${escapar(config.clave)}" placeholder="sk-…" autocomplete="off" spellcheck="false">
-    </label>
-    <label for="foto-modelo">Modelo
-      <input id="foto-modelo" class="mono" data-foto-config="modelo" value="${escapar(config.modelo)}" autocomplete="off" spellcheck="false">
-    </label>
-    <p class="ayuda">La key se guarda solo en este navegador. No la pongas en el código ni en el repositorio.
-      ${config.clave ? '<button type="button" class="enlace" data-action="borrar-clave-foto">Borrar la key de este navegador</button>' : ''}</p>
-  </div>`;
 }
 
 function lecturaHTML(estado) {
