@@ -16,6 +16,7 @@ import { panelFotoHTML, revisionFotoHTML } from './foto/vista.js';
 import { leerFormulaDeFoto, cargarConfiguracion, guardarConfiguracion } from './foto/lector.js';
 import { prepararImagen } from './foto/imagen.js';
 import { montarTablaCuantificadores } from './cuantificadores/visor.js';
+import { montarAsistente } from './asistente.js';
 
 export function iniciarInterfaz(raiz) {
   const estado = crearEstado();
@@ -34,6 +35,7 @@ export function iniciarInterfaz(raiz) {
   let lecturaFoto = null;
   const $ = (selector) => raiz.querySelector(selector);
   raiz.innerHTML = estructura();
+  const asistente = montarAsistente(raiz);
 
   function anunciar(mensaje) { $('#anuncio').textContent = mensaje; }
 
@@ -49,6 +51,7 @@ export function iniciarInterfaz(raiz) {
   }
 
   function renderizar(enfocar = false) {
+    asistente.actualizar(estado);
     visorArbol?.destruir();
     visorCuantificadores?.destruir();
     const indice = SECCIONES.findIndex((s) => s.id === estado.seccion);
@@ -89,6 +92,7 @@ export function iniciarInterfaz(raiz) {
   }
 
   function actualizarValidaciones() {
+    asistente.actualizar(estado);
     revision = revisarEntrada(estado);
     const cambios = [
       ['#errores-lenguaje', erroresHTML(revision.errores.lenguaje, 'lenguaje')],
@@ -275,6 +279,7 @@ export function iniciarInterfaz(raiz) {
     if (e.target.closest('[data-action="insertar"]')) e.preventDefault();
   });
   raiz.addEventListener('keydown', (e) => {
+    if (e.target.closest('.asistente')) return;
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); prepararEvaluacion(); }
   });
   raiz.addEventListener('click', (e) => {
