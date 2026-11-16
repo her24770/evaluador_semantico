@@ -1,6 +1,12 @@
+/**
+ * Dibujo y exploración del árbol sintáctico en SVG.
+ * modelo.js prepara nodos y posiciones; aquí se manejan selección, zoom,
+ * teclado y detalle. Seleccionar un cuantificador resalta las apariciones que liga.
+ */
 import { escapar, erroresHTML } from '../componentes/comunes.js';
 import { crearArbol, detalleNodo, distribuirArbol } from './modelo.js';
 
+/** Panel inicial; montarArbol completa su contenido según la revisión de la fórmula. */
 export function panelArbolHTML() {
   return `<section id="arbol-sintactico" class="panel arbol-panel" aria-labelledby="arbol-titulo">
     <h2 id="arbol-titulo" class="titulo-tiza">Árbol sintáctico</h2>
@@ -10,6 +16,7 @@ export function panelArbolHTML() {
 
 const lista = (variables) => escapar(variables.join(', ') || 'ninguna');
 
+/** Muestra el tipo, la expresión y sus variables; id debe identificar un nodo existente. */
 export function detalleHTML(arbol, id) {
   const nodo = detalleNodo(arbol, id);
   const contextoDistinto = nodo.libres.join(',') !== nodo.libresContexto.join(',')
@@ -30,6 +37,7 @@ export function detalleHTML(arbol, id) {
       : 'Este cuantificador no liga ninguna aparición.'} Un cuantificador interior con la misma variable inicia su propio alcance.</p>` : ''}`;
 }
 
+/** Dibuja conexiones y nodos; solo el nodo elegido entra en la secuencia de Tab. */
 export function svgArbolHTML(arbol, distribucion, elegido = arbol.raizId) {
   const { cajas, ancho, alto } = distribucion;
   const conexiones = arbol.nodos.flatMap((nodo) => nodo.hijos.map((id) => {
@@ -49,7 +57,12 @@ export function svgArbolHTML(arbol, distribucion, elegido = arbol.raizId) {
     }).join('')}</svg>`;
 }
 
-/** Controlador local. No modifica la fórmula, la revisión ni el resultado. */
+/**
+ * Monta el visor sin modificar la fórmula, la revisión ni el resultado.
+ * @param {HTMLElement|null} contenedor  panel creado por panelArbolHTML
+ * @param {object} revision  revisión actual del ejercicio
+ * @returns {{actualizar: Function, destruir: Function}|null} destruir desconecta el observador de tamaño
+ */
 export function montarArbol(contenedor, revision) {
   if (!contenedor) return null;
   const contenido = contenedor.querySelector('[data-arbol-contenido]');
@@ -58,6 +71,7 @@ export function montarArbol(contenedor, revision) {
   const $ = (s) => contenido.querySelector(s);
   const elementoNodo = (id) => $(`[data-arbol-nodo="${id}"]`);
 
+  /** Sincroniza nodo activo, detalle y resaltado; al navegar, desplaza solo el lienzo. */
   function seleccionar(id, enfocar = false) {
     const nodo = arbol.porId.get(id);
     if (!nodo) return;
@@ -83,12 +97,14 @@ export function montarArbol(contenedor, revision) {
     }
   }
 
+  /** Centra horizontalmente el árbol y vuelve al nivel de la raíz. */
   function centrar() {
     const ventana = $('[data-arbol-ventana]');
     ventana.scrollLeft = (ventana.scrollWidth - ventana.clientWidth) / 2;
     ventana.scrollTop = 0;
   }
 
+  /** Limita el zoom entre 40 % y 200 %, conservando el centro visible cuando se solicita. */
   function cambiarZoom(nuevo, mantenerCentro = true) {
     const ventana = $('[data-arbol-ventana]');
     const centroX = (ventana.scrollLeft + ventana.clientWidth / 2) / ventana.scrollWidth;
@@ -106,6 +122,7 @@ export function montarArbol(contenedor, revision) {
     } else centrar();
   }
 
+  /** Reconstruye el árbol solo si cambió su sintaxis o sus errores; en otro caso conserva la vista. */
   function actualizar(actual) {
     // Conservar la selección y el zoom al editar solo interpretación o entorno.
     const clave = JSON.stringify([actual.ast, actual.errores.lenguaje, actual.errores.formula.map((e) => [e.categoria, e.message, e.pos])]);

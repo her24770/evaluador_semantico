@@ -1,3 +1,8 @@
+/**
+ * Descripciones locales de las reglas y pasos del evaluador.
+ * Añaden una definición sencilla a la razón ya calculada y dividen los hijos
+ * en páginas. No analizan fórmulas, no calculan V/F y no consultan a la IA.
+ */
 const REGLAS = {
   'atómica': ['Pertenencia a la relación', 'El algoritmo evalúa los términos y comprueba si la tupla obtenida pertenece a la relación del predicado.'],
   igualdad: ['Igualdad de términos', 'La igualdad es verdadera cuando los dos términos representan el mismo elemento del dominio.'],
@@ -10,7 +15,11 @@ const REGLAS = {
   '∃': ['Cuantificador existencial', 'La condición debe cumplirse para al menos un elemento del dominio. Un testigo basta para que sea verdadera.'],
 };
 
-/** Plantillas de lectura: no analizan fórmulas, no calculan V/F y no llaman a la IA. */
+/**
+ * Combina la definición de la regla con los datos de un paso sin modificarlos.
+ * @param {object} nodo  nodo de explicación devuelto por el evaluador
+ * @returns {object} fórmula, valor, regla, definición, razón, entorno y evidencia si existe
+ */
 export function describirPaso(nodo) {
   const [regla, definicion] = REGLAS[nodo.regla] ?? ['Paso del evaluador', 'Este paso utiliza la regla indicada por el evaluador.'];
   const evidencia = nodo.testigo ?? nodo.contraejemplo;
@@ -22,6 +31,13 @@ export function describirPaso(nodo) {
 }
 
 export const PASOS_POR_PAGINA = 8;
+/**
+ * Devuelve hasta ocho hijos y ajusta la página al rango disponible.
+ * @param {object} nodo  paso con un arreglo hijos
+ * @param {number} [pagina]  índice entero desde 0
+ * @returns {{total: number, paginas: number, actual: number, inicio: number, hijos: object[]}}
+ *   incluso sin hijos hay una página vacía, para simplificar los controles
+ */
 export function paginarHijos(nodo, pagina = 0) {
   const total = nodo.hijos.length;
   const paginas = Math.max(1, Math.ceil(total / PASOS_POR_PAGINA));

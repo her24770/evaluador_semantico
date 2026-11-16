@@ -1,8 +1,15 @@
+/**
+ * Adaptación HTTP de los servicios de chat y foto.
+ * Revisa método, origen, tipo y tamaño del cuerpo antes de usar el servicio.
+ * También limita consultas y convierte los errores conocidos en respuestas JSON;
+ * los errores inesperados salen con un mensaje genérico.
+ */
 import { ErrorAsistente } from './error.js';
 import { validarConsulta } from './servicio.js';
 
 import { MAX_CUERPO_BYTES } from './contrato.js';
 
+/** Envía JSON en UTF-8 e indica que la respuesta no debe guardarse en caché. */
 function enviar(res, estado, datos) {
   res.statusCode = estado;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -11,6 +18,13 @@ function enviar(res, estado, datos) {
   res.end(JSON.stringify(datos));
 }
 
+/**
+ * Lee un cuerpo ya preparado o un flujo de datos, según el entorno del servidor.
+ * Cuenta bytes reales además de revisar Content-Length, que puede faltar o ser incorrecto.
+ * @param {object} req  petición HTTP
+ * @param {number} maxBytes
+ * @returns {Promise<unknown>} valor obtenido al interpretar el JSON
+ */
 async function leerJSON(req, maxBytes) {
   if (Number(req.headers['content-length']) > maxBytes) {
     throw new ErrorAsistente('cuerpo_grande', 'La consulta supera el tamaño permitido.', 413);
@@ -40,8 +54,13 @@ async function leerJSON(req, maxBytes) {
 }
 
 /**
- * Límite compartido por instancia: seis consultas por minuto y una en curso.
- * Lo usan el chat (/api/chat) y la lectura de fotos (/api/leer-foto), cada uno con su validación y tamaño máximo.
+ * Crea un manejador con un límite de seis consultas por minuto y una en curso.
+ * El contador pertenece a cada instancia del manejador, no a cada usuario.
+ * Chat y foto usan esta misma función con su propia validación y tamaño máximo.
+ *
+ * @param {Function} obtenerServicio  obtiene o crea la función que procesa los datos validados
+ * @param {{ahora?: Function, validar?: Function, maxBytes?: number}} [opciones]
+ * @returns {Function} manejar(req, res), compatible con el servidor local y los endpoints
  */
 export function crearManejador(obtenerServicio, { ahora = Date.now, validar = validarConsulta, maxBytes = MAX_CUERPO_BYTES } = {}) {
   let inicio = 0;
@@ -96,6 +115,7 @@ export function crearManejador(obtenerServicio, { ahora = Date.now, validar = va
       }
       enviar(res, estado, datos);
     } finally {
+      // Solo libera la reserva hecha por esta petición; un rechazo no debe liberar la de otra.
       if (reservado) ocupado = false;
     }
   };

@@ -3,6 +3,11 @@
 .dato .etiqueta { margin-bottom: 20px; }
 .dato .expresion { margin-bottom: 14px; }
 .dato .enlace { font-size: 12px; }
+/*
+ * Editor principal de fórmula, avisos de sintaxis y barra de símbolos.
+ * clamp ajusta el tamaño del texto al ancho disponible sin salir de sus límites.
+ * Las acciones pueden pasar a otra línea cuando falta espacio.
+ */
 .panel-formula { padding: 22px 24px; }
 .panel-formula > .etiqueta { margin-bottom: 8px; }
 .editor-formula { display: block; height: 105px; min-height: 100px; margin: 0; padding: 10px 0; border: 0; border-bottom: 2px solid var(--tiza-suave); border-radius: 0; background: transparent; font-size: clamp(32px, 4vw, 52px); font-weight: 500; line-height: 1.35; }

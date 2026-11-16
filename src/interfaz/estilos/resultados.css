@@ -1,3 +1,8 @@
+/*
+ * Presentación de la fórmula evaluada, su dictamen, evidencia y explicación.
+ * Verde y coral distinguen V/F; las etiquetas también expresan el valor en texto.
+ * El árbol de pasos usa listas anidadas y detalles que se abren o cierran.
+ */
 .resultado-formula { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: start; gap: 20px; margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--linea); }
 .resultado-formula > div { min-width: 0; flex: 1 1 280px; }
 .resultado-expresion { margin: 16px 0 0; font-family: var(--fuente); font-size: clamp(24px, 3vw, 36px); font-weight: 500; line-height: 1.5; overflow-wrap: anywhere; }

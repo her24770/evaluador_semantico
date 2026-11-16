@@ -1,8 +1,15 @@
+/**
+ * Vista de la interpretación: qué elementos forman 𝒟 y qué significa cada símbolo.
+ * Una constante nombra un elemento; una función asigna una salida a cada tupla
+ * de entrada; un predicado se interpreta como un conjunto de elementos o tuplas.
+ * Las funciones grandes se muestran por páginas para no crear todos los selectores a la vez.
+ */
 import { escapar, opciones, panel, erroresHTML, propio } from '../componentes/comunes.js';
 import { tuplaEn, MAX_CASILLAS } from '../modelo.js';
 
 const TAM_PAGINA = 24;
 
+/** Construye hasta 24 filas de la tabla; paginas guarda la página elegida por ID de símbolo. */
 function tablaFuncion(simbolo, dominio, paginas) {
   const aridad = Number(simbolo.aridad);
   const total = dominio.length ** aridad;
@@ -19,6 +26,7 @@ function tablaFuncion(simbolo, dominio, paginas) {
     ${total > TAM_PAGINA ? `<div class="paginacion"><button type="button" class="boton secundario" data-action="pagina-tabla" data-id="${simbolo.id}" data-pagina="${pagina - 1}" ${pagina === 0 ? 'disabled' : ''}>Anterior</button><span>${inicio + 1}–${Math.min(inicio + TAM_PAGINA, total)} de ${total}</span><button type="button" class="boton secundario" data-action="pagina-tabla" data-id="${simbolo.id}" data-pagina="${pagina + 1}" ${inicio + TAM_PAGINA >= total ? 'disabled' : ''}>Siguiente</button></div>` : ''}`;
 }
 
+/** Campo de relación y constructor opcional de tuplas, disponible para aridades de hasta 8. */
 function relacion(simbolo, dominio) {
   const aridad = Number(simbolo.aridad);
   return `<label for="relacion-${simbolo.id}">Elementos o tuplas de ${escapar(simbolo.nombre)}ᴵ</label>
@@ -37,6 +45,7 @@ function constantes(lista, dominio) {
     </div>`).join('')}</div>`;
 }
 
+/** Devuelve el HTML de dominio y símbolos; pide corregir primero una firma inválida. */
 export function interpretacion(estado, revision, paginas) {
   const listaConstantes = estado.constantes ?? [];
   const valido = !revision.errores.lenguaje.length;

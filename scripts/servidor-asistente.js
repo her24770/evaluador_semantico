@@ -1,3 +1,8 @@
+/**
+ * Servidor local de los endpoints del asistente y de lectura de fotos.
+ * Carga .env si existe y conecta las mismas entradas HTTP usadas en producción.
+ * Se inicia con npm run dev:asistente; HOST y PORT permiten cambiar dónde escucha.
+ */
 import { createServer } from 'node:http';
 
 try { process.loadEnvFile('.env'); }

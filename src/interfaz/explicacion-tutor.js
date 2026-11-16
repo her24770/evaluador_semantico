@@ -1,10 +1,22 @@
+/**
+ * Explorador local de los pasos calculados por el evaluador.
+ * Una pila guarda el camino hasta el paso abierto: entrar añade un hijo
+ * y volver lo retira. La explicación combina la regla general con la razón
+ * del cálculo, sin hacer otra evaluación ni enviar el ejercicio a la IA.
+ */
 import { describirPaso, paginarHijos } from '../asistente/explicacion.js';
 import { escapar } from './componentes/comunes.js';
 
+/**
+ * Activa la navegación por los pasos y su paginación.
+ * @param {HTMLElement} destino  contenedor de la pestaña de resultado del tutor
+ * @returns {{actualizar: Function}} recibe un resultado o null; reinicia el camino si cambia el resultado
+ */
 export function montarExplicacionTutor(destino) {
   let resultado;
   let pila = [];
   let pagina = 0;
+  /** Dibuja el paso actual y sus hijos, o indica que primero se necesita una evaluación. */
   function pintar(enfocar = false) {
     if (!resultado) {
       destino.innerHTML = `<div class="tutor-sin-resultado"><h3>Primero, evalúa tu fórmula</h3>

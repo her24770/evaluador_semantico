@@ -1,3 +1,10 @@
+/**
+ * Coordinación de la interfaz: navegación, edición, fotos y evaluación.
+ *
+ * modelo.js revisa los datos y las vistas devuelven HTML. Aquí se conectan
+ * los eventos con esos módulos y se conserva el estado entre pantallas.
+ * La evaluación corre en un worker: se puede detener sin bloquear la página.
+ */
 import './estilos/index.css';
 import { crearEstado, crearEstadoFoto, revisarEntrada, invalidarResultado, seccionPendiente } from './modelo.js';
 import { insertarSimbolo } from './editor.js';
@@ -18,6 +25,10 @@ import { prepararImagen } from './foto/imagen.js';
 import { montarTablaCuantificadores } from './cuantificadores/visor.js';
 import { montarAsistente } from './asistente.js';
 
+/**
+ * Monta un ejercicio vacío y registra sus controles en el elemento raíz.
+ * @param {HTMLElement} raiz  contenedor de la aplicación
+ */
 export function iniciarInterfaz(raiz) {
   const estado = crearEstado();
   const paginas = {};
@@ -35,8 +46,10 @@ export function iniciarInterfaz(raiz) {
   raiz.innerHTML = estructura();
   const asistente = montarAsistente(raiz);
 
+  // La región de estado comunica cambios también a quienes usan un lector de pantalla.
   function anunciar(mensaje) { $('#anuncio').textContent = mensaje; }
 
+  /** Termina el worker y su plazo de espera; las entradas del ejercicio se conservan. */
   function detenerEvaluacion() {
     if (worker) {
       worker.onmessage = null;
@@ -48,6 +61,7 @@ export function iniciarInterfaz(raiz) {
     ocupado = false;
   }
 
+  /** Reconstruye la sección activa y monta sus visores; enfocar se usa al navegar. */
   function renderizar(enfocar = false) {
     asistente.actualizar(estado);
     visorArbol?.destruir();
@@ -80,6 +94,7 @@ export function iniciarInterfaz(raiz) {
     if (enfocar) $('#titulo-vista').focus();
   }
 
+  /** Cambia a una sección conocida y recupera la selección del editor si está visible. */
   function navegar(seccion) {
     if (!SECCIONES.some((s) => s.id === seccion)) return;
     estado.seccion = seccion;
@@ -89,6 +104,7 @@ export function iniciarInterfaz(raiz) {
     if (editor) editor.setSelectionRange(seleccion.inicio, seleccion.fin);
   }
 
+  /** Actualiza avisos y resultados derivados sin reemplazar el campo donde se está escribiendo. */
   function actualizarValidaciones() {
     asistente.actualizar(estado);
     revision = revisarEntrada(estado);
@@ -112,6 +128,7 @@ export function iniciarInterfaz(raiz) {
     visorArbol?.actualizar(revision);
   }
 
+  /** Lleva al primer dato pendiente; solo inicia el cálculo cuando todas las secciones son válidas. */
   function prepararEvaluacion() {
     if (ocupado) { navegar('resultados'); return; }
     revision = revisarEntrada(estado);
@@ -128,12 +145,14 @@ export function iniciarInterfaz(raiz) {
 
   // --- Leer fórmula desde una foto ---------------------------------------------
 
+  /** Reemplaza solo el panel de foto y, si se indica un selector, devuelve allí el foco. */
   function refrescarFoto(enfocar) {
     const panelFoto = $('#foto-panel');
     if (panelFoto) panelFoto.outerHTML = panelFotoHTML(estado);
     if (enfocar) $(enfocar)?.focus();
   }
 
+  /** Prepara el archivo como JPEG y comienza la lectura; los fallos quedan en el panel. */
   async function cargarFoto(archivo) {
     if (!archivo) return;
     lecturaFoto?.abort();
@@ -148,6 +167,10 @@ export function iniciarInterfaz(raiz) {
     leerFoto();
   }
 
+  /**
+   * Pide la transcripción y la deja en revisión, sin reemplazar todavía la fórmula.
+   * Cada petición tiene su controlador: una respuesta de una lectura anterior se descarta.
+   */
   async function leerFoto() {
     if (!estado.foto.imagen) return;
     lecturaFoto?.abort();
@@ -175,6 +198,11 @@ export function iniciarInterfaz(raiz) {
     anunciar(estado.foto.fase === 'listo' ? `Leí: ${estado.foto.texto}. Revísalo antes de usarlo.` : estado.foto.error);
   }
 
+  /**
+   * Usa los atributos data-* para guardar cada campo en su parte del estado.
+   * Editar datos del ejercicio cancela el cálculo y borra el resultado anterior.
+   * El borrador de la foto y la sustitución se revisan por separado.
+   */
   function guardarEntrada(elemento) {
     const d = elemento.dataset;
     if (d.foto === 'archivo') return; // se procesa en el evento change
@@ -209,6 +237,7 @@ export function iniciarInterfaz(raiz) {
     actualizarValidaciones();
   }
 
+  /** Inicia el cálculo en segundo plano, recibe sus pasos y lo cancela si supera 10 segundos. */
   function evaluar() {
     detenerEvaluacion();
     invalidarResultado(estado);
@@ -250,6 +279,8 @@ export function iniciarInterfaz(raiz) {
     }, 10000);
   }
 
+  // --- Eventos de la aplicación -----------------------------------------------
+  // Se escuchan en la raíz: los controles siguen funcionando al reemplazar el HTML de una vista.
   raiz.addEventListener('input', (e) => guardarEntrada(e.target));
   raiz.addEventListener('change', (e) => {
     if (e.target.dataset.foto === 'archivo') { cargarFoto(e.target.files?.[0]); e.target.value = ''; return; }
@@ -266,6 +297,7 @@ export function iniciarInterfaz(raiz) {
   ['select', 'keyup', 'pointerup', 'focusout'].forEach((tipo) => raiz.addEventListener(tipo, (e) => {
     if (e.target.id === 'formula') seleccion = { inicio: e.target.selectionStart, fin: e.target.selectionEnd };
   }, true));
+  // Evita que pulsar un símbolo quite el foco y se pierda la posición del cursor.
   raiz.addEventListener('pointerdown', (e) => {
     if (e.target.closest('[data-action="insertar"]')) e.preventDefault();
   });

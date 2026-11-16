@@ -8,7 +8,13 @@ const PESO_MAXIMO = 20 * 1024 * 1024;
 // El servidor acepta hasta 3 MB de data URL (src/asistente/foto.js).
 const MAX_DATA_URL = 2_900_000;
 
-/** @returns {Promise<string>} data URL JPEG */
+/**
+ * Abre la imagen y reduce su tamaño manteniendo la proporción.
+ * Si el JPEG sigue siendo grande, prueba tamaños menores antes de enviarlo.
+ * @param {File} archivo  imagen elegida por el usuario, de hasta 20 MB
+ * @returns {Promise<string>} imagen JPEG como data URL (cabecera y contenido en base64)
+ * @throws {Error} si falta el archivo, no es una imagen, pesa demasiado o no se puede abrir
+ */
 export async function prepararImagen(archivo) {
   if (!archivo) throw new Error('No se eligió ninguna imagen.');
   if (!archivo.type.startsWith('image/')) throw new Error('El archivo no es una imagen. Usa JPG, PNG o WEBP.');
@@ -31,6 +37,7 @@ export async function prepararImagen(archivo) {
   return datos;
 }
 
+/** Dibuja sobre fondo blanco y exporta a JPEG, sin ampliar imágenes que ya son pequeñas. */
 function codificar(bitmap, lado) {
   const escala = Math.min(1, lado / Math.max(bitmap.width, bitmap.height));
   const lienzo = document.createElement('canvas');

@@ -1,12 +1,24 @@
+/**
+ * Estado del chat en el navegador: mensajes, consulta pendiente, errores y consumo.
+ * Cada envío usa un número de revisión. Cancelar o borrar cambia ese número
+ * para impedir que una respuesta tardía reaparezca en la conversación.
+ */
 import { acotarHistorial, validarConsulta } from './contrato.js';
 
-/** Teoría independiente del ejercicio. Borrar o cancelar descarta respuestas tardías. */
+/**
+ * Crea una conversación de teoría independiente del ejercicio abierto.
+ * @param {{fetchImpl?: Function, alCambiar?: Function, esperaMs?: number}} [opciones]
+ *   alCambiar recibe el estado al actualizarse; esperaMs es el plazo de cada envío
+ * @returns {{estado: object, limpiar: Function, cancelar: Function, enviar: Function}}
+ *   enviar devuelve Promise<boolean>: true solo si agregó un intercambio completo
+ */
 export function crearConversacion({ fetchImpl = fetch, alCambiar = () => {}, esperaMs = 25000 } = {}) {
   let revision = 0;
   let control;
   const estado = { mensajes: [], pendiente: '', error: '', aviso: '', consumo: null };
   const notificar = () => alCambiar(estado);
 
+  /** Invalida la petición actual y la aborta, conservando los mensajes ya recibidos. */
   function cancelar() {
     revision++;
     control?.abort();
@@ -16,6 +28,7 @@ export function crearConversacion({ fetchImpl = fetch, alCambiar = () => {}, esp
 
   return {
     estado,
+    /** Cancela lo pendiente y borra mensajes, error y consumo. */
     limpiar() {
       cancelar();
       estado.mensajes = [];
@@ -29,6 +42,7 @@ export function crearConversacion({ fetchImpl = fetch, alCambiar = () => {}, esp
       estado.aviso = 'Consulta cancelada. Puedes editar la pregunta y volver a enviarla.';
       notificar();
     },
+    /** Valida, envía solo el historial reciente y guarda el par pregunta/respuesta si llega a tiempo. */
     async enviar(pregunta) {
       if (estado.pendiente) return false;
       const datos = { pregunta, historial: acotarHistorial(estado.mensajes) };

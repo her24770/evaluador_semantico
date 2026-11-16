@@ -1,3 +1,8 @@
+/*
+ * Reglas generales de la página: medidas, texto, colores y foco de teclado.
+ * .solo-lectores oculta contenido visualmente y lo mantiene accesible;
+ * .saltar permite llegar al contenido sin recorrer toda la navegación.
+ */
 * { box-sizing: border-box; }
 body { margin: 0; border: 15px solid var(--madera); padding: 10px; min-width: 320px; min-height: 100vh; background: var(--madera-interior); color: var(--tiza); font: 15px/1.5 var(--fuente); }
 button, input, textarea, select { font: inherit; }

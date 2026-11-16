@@ -1,3 +1,8 @@
+/*
+ * Panel del tutor: pestañas de teoría y resultado, consulta, historial y pasos.
+ * Los estados hidden y aria-selected reflejan lo que controla asistente.js.
+ * Las respuestas y fórmulas largas pueden partirse para mantenerse dentro del panel.
+ */
 .cabecera { justify-content: space-between; }
 .espacio-trabajo, #contenido { min-width: 0; }
 .asistente[hidden], .asistente [hidden] { display: none; }

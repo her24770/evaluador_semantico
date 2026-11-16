@@ -1,8 +1,21 @@
+/**
+ * Exploración de la evaluación exhaustiva de los cuantificadores.
+ * En ∃ se destacan los casos verdaderos (testigos); en ∀, los falsos
+ * (contraejemplos). La vista resumida filtra los casos ya calculados.
+ * Las tablas anidadas se dibujan al abrir una fila para no llenar la página de golpe.
+ */
 import { escapar } from '../componentes/comunes.js';
 
 export const FILAS_POR_PAGINA = 12;
 export const TABLAS_POR_PAGINA = 6;
 
+/**
+ * Busca los primeros cuantificadores de cada rama, sin entrar aún en sus casos.
+ * Los cuantificadores interiores se consultan al abrir la fila correspondiente.
+ * @param {object} resultado  nodo de una evaluación exhaustiva completa
+ * @param {string} [ruta]  descripción de su posición
+ * @returns {{nodo: object, ruta: string}[]}
+ */
 export function cuantificadoresEn(resultado, ruta = 'raíz') {
   const encontrados = [];
   const pendientes = [{ nodo: resultado, ruta }];
@@ -18,6 +31,14 @@ export function cuantificadoresEn(resultado, ruta = 'raíz') {
   return encontrados;
 }
 
+/**
+ * Selecciona hasta 12 índices de casos. Si se pide el resumen y hay casos
+ * decisivos, muestra solo esos; si no los hay, conserva todos para justificar el resultado.
+ * @param {object} nodo  cuantificador con elementos, hijos y decisivos
+ * @param {boolean} [resumida]
+ * @param {number} [pagina]  índice desde 0, ajustado al rango disponible
+ * @returns {{indices: number[], total: number, pagina: number, paginas: number}}
+ */
 export function paginaCasos(nodo, resumida = false, pagina = 0) {
   const indices = nodo.elementos.map((_, i) => i).filter((i) =>
     !resumida || !nodo.decisivos.length || nodo.hijos[i].valor === (nodo.regla === '∃'));
@@ -27,6 +48,7 @@ export function paginaCasos(nodo, resumida = false, pagina = 0) {
     total: indices.length, pagina: actual, paginas };
 }
 
+/** Crea el panel o el aviso de límite; una tabla incompleta no se presenta como comprobación total. */
 export function panelCuantificadoresHTML(tabla) {
   if (!tabla) return '';
   return `<section class="tabla-cuantificadores" aria-labelledby="titulo-cuantificadores">
@@ -40,12 +62,19 @@ export function panelCuantificadoresHTML(tabla) {
 
 const vf = (valor) => `<strong class="${valor ? 'es-verdadero' : 'es-falso'}" aria-label="${valor ? 'Verdadero' : 'Falso'}">${valor ? 'V' : 'F'}</strong>`;
 
+/** Controles comunes para cambiar de página de casos o de grupos de cuantificadores. */
 function paginacion(atributo, id, pagina, paginas, total, unidad) {
   return `<div class="cuant-paginacion"><span class="ayuda" role="status">${total} ${unidad} · Página ${pagina + 1} de ${paginas}</span>
     ${paginas > 1 ? `<button type="button" class="enlace" ${atributo}="${id}" data-pagina="${pagina - 1}" ${pagina === 0 ? 'disabled' : ''}>Anterior</button>
     <button type="button" class="enlace" ${atributo}="${id}" data-pagina="${pagina + 1}" ${pagina === paginas - 1 ? 'disabled' : ''}>Siguiente</button>` : ''}</div>`;
 }
 
+/**
+ * Activa la navegación de una tabla exhaustiva completa.
+ * @param {HTMLElement|null} contenedor  contiene el panel generado por panelCuantificadoresHTML
+ * @param {object|null} tabla  resultado de evaluarExhaustivo
+ * @returns {{destruir: Function}|null} permite retirar los eventos al reemplazar la vista
+ */
 export function montarTablaCuantificadores(contenedor, tabla) {
   if (!contenedor || !tabla?.completa) return null;
   let resumida = false;
@@ -53,6 +82,7 @@ export function montarTablaCuantificadores(contenedor, tabla) {
   const tablas = new Map();
   const grupos = new Map();
 
+  /** Página de hasta seis cuantificadores encontrados al mismo nivel de exploración. */
   function grupoHTML(resultado, ruta, id = `g${++secuencia}`, pagina = 0) {
     const lista = cuantificadoresEn(resultado, ruta);
     grupos.set(id, { resultado, ruta });
@@ -63,6 +93,7 @@ export function montarTablaCuantificadores(contenedor, tabla) {
       ${lista.length > TABLAS_POR_PAGINA ? paginacion('data-cuant-paginar-grupo', id, pagina, paginas, lista.length, 'cuantificadores') : ''}</div>`;
   }
 
+  /** Tabla de un cuantificador, con sus casos y espacios para explorar los pasos interiores. */
   function tablaHTML(nodo, ruta, id = `t${++secuencia}`, pagina = 0) {
     tablas.set(id, { nodo, ruta });
     const casos = paginaCasos(nodo, resumida, pagina);
@@ -85,17 +116,20 @@ export function montarTablaCuantificadores(contenedor, tabla) {
       ${paginacion('data-cuant-paginar', id, casos.pagina, casos.paginas, casos.total, 'casos en esta vista')}</section>`;
   }
 
+  /** Reinicia los registros y dibuja desde la raíz, por ejemplo al cambiar entre completa y resumida. */
   function mostrar() {
     tablas.clear();
     grupos.clear();
     contenedor.querySelector('[data-cuant-tablas]').innerHTML = grupoHTML(tabla.resultado, 'raíz');
   }
 
+  /** Quita del registro las tablas y grupos cuyo HTML se va a descartar. */
   function liberar(destino) {
     destino.querySelectorAll('[data-cuant-tabla]').forEach((e) => tablas.delete(e.dataset.cuantTabla));
     destino.querySelectorAll('[data-cuant-grupo]').forEach((e) => grupos.delete(e.dataset.cuantGrupo));
   }
 
+  /** Atiende el cambio de vista y las dos paginaciones, recuperando el foco después de dibujar. */
   function click(evento) {
     const boton = evento.target.closest('button');
     if (!boton || boton.disabled) return;
@@ -124,6 +158,7 @@ export function montarTablaCuantificadores(contenedor, tabla) {
     }
   }
 
+  /** Crea las tablas interiores al abrir un caso y las libera al cerrarlo. */
   function toggle(evento) {
     const detalle = evento.target;
     if (!detalle.matches('details[data-cuant-caso]') || !contenedor.contains(detalle)) return;

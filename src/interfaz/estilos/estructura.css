@@ -1,3 +1,8 @@
+/*
+ * Distribución de la pizarra, cabecera, navegación y paneles de cada sección.
+ * Las rejillas organizan editor, datos y resultados. minmax(0, ...) permite
+ * que las columnas se reduzcan aunque contengan fórmulas o nombres largos.
+ */
 .pizarra { position: relative; isolation: isolate; min-height: calc(100vh - 50px); max-width: 1800px; margin: auto; padding: 35px 50px 24px; background: var(--pizarra); border-top: 5px solid #38594b; border-bottom: 8px solid #36584b; }
 .cabecera { display: flex; align-items: center; gap: 24px; }
 .identidad { display: flex; align-items: center; gap: 18px; min-width: 0; }

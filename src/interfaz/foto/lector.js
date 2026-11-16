@@ -7,15 +7,21 @@ import { normalizarFormula } from '../../sintaxis/index.js';
 
 export const RUTA_FOTO = '/api/leer-foto';
 
+/** Error de lectura que la interfaz puede mostrar con un mensaje comprensible. */
 export class ErrorLector extends Error {}
 
 /**
+ * Pide la transcripción, comprueba la respuesta y normaliza su notación.
+ * Conserva también el texto original en leida para compararlo al revisar.
+ * Cancelar propaga AbortError para que el controlador no lo muestre como fallo de conexión.
+ *
  * @param {object} opciones
  * @param {string} opciones.imagen  data URL (data:image/jpeg;base64,…)
  * @param {string[]} [opciones.simbolos]  nombres declarados en el lenguaje, como pista
  * @param {AbortSignal} [opciones.senal]
  * @param {typeof fetch} [opciones.fetch]  para las pruebas
  * @returns {Promise<{formula: string, leida: string, legible: boolean, dudas: {fragmento: string, alternativas: string[], motivo: string}[]}>}
+ * @throws {ErrorLector} si no hay imagen, falla el servidor o su respuesta no tiene el formato esperado
  */
 export async function leerFormulaDeFoto({ imagen, simbolos = [], senal, fetch: pedir = globalThis.fetch }) {
   if (!imagen) throw new ErrorLector('Primero sube una foto.');

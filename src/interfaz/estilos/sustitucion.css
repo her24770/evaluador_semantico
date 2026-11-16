@@ -1,3 +1,8 @@
+/*
+ * Campos y resultado de φ[t/x]. El panel ocupa todo el ancho de la rejilla.
+ * La sustitución directa con captura se tacha; los renombres y el resultado
+ * correcto se muestran debajo. En pantallas pequeñas los campos se apilan.
+ */
 .sustitucion-panel { grid-column: 1 / -1; }
 .sustitucion-panel > .titulo-tiza { margin-bottom: 8px; }
 .sustitucion-campos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 16px; margin: 16px 0 8px; }

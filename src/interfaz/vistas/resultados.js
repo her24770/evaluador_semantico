@@ -1,8 +1,14 @@
+/**
+ * Presentación del valor de verdad y de los pasos devueltos por el evaluador.
+ * El resultado principal puede decidir un cuantificador con un solo testigo
+ * o contraejemplo. La tabla exhaustiva es un cálculo adicional y se muestra aparte.
+ */
 import { escapar, erroresHTML } from '../componentes/comunes.js';
 import { aCadena } from '../../sintaxis/index.js';
 import { resumenInterpretacionHTML } from '../componentes/resumen.js';
 import { panelCuantificadoresHTML } from '../cuantificadores/visor.js';
 
+/** Arma la pantalla; solo muestra el resultado si las entradas siguen válidas y no hay cálculo o fallo. */
 export function resultados(estado, revision, ocupado = false, fallo = '') {
   const resultado = revision.valido && !ocupado && !fallo ? estado.resultado : null;
   const formula = resultado?.formula ?? (revision.ast ? aCadena(revision.ast) : estado.formula);
@@ -19,6 +25,7 @@ export function resultados(estado, revision, ocupado = false, fallo = '') {
     <div id="cuantificadores-contenedor">${resultado ? panelCuantificadoresHTML(estado.tablaCuantificadores) : ''}</div>`;
 }
 
+/** Distingue espera, errores, interrupción y resultado, junto a la razón o evidencia calculada. */
 export function dictamen(estado, revision, ocupado = false, fallo = '') {
   const resultado = estado.resultado;
   if (ocupado) return `<aside class="panel dictamen" aria-busy="true"><p class="etiqueta">Resultado</p><h2 class="titulo-tiza">Evaluando…</h2><button type="button" class="boton secundario" data-action="cancelar">Cancelar evaluación</button></aside>`;
@@ -43,6 +50,7 @@ export function dictamen(estado, revision, ocupado = false, fallo = '') {
     <p>${escapar(resultado.razon)}</p><p class="ayuda">Entorno: ${escapar(resultado.entorno)}</p></div></aside>`;
 }
 
+/** Resumen de hasta seis pasos disponibles; no representa por sí solo todos los elementos del dominio. */
 export function casosHTML(resultado) {
   if (!resultado) return '';
   // Se muestran exclusivamente los hijos devueltos por el evaluador. En un
@@ -53,6 +61,7 @@ export function casosHTML(resultado) {
     ${hijos.length > 6 ? `<p class="ayuda">Se muestran 6 de ${hijos.length} pasos. Abajo puedes consultar la explicación completa.</p>` : ''}`;
 }
 
+/** Dibuja recursivamente un paso y sus hijos; abre por defecto los dos primeros niveles. */
 function nodoHTML(nodo, profundidad = 0) {
   const caso = nodo.testigo ?? nodo.contraejemplo;
   return `<li><details ${profundidad < 2 ? 'open' : ''}><summary><span class="valor-nodo ${nodo.valor ? 'es-verdadero' : 'es-falso'}">${nodo.valor ? 'V' : 'F'}</span><span>${escapar(nodo.formula)}</span><span class="regla">${escapar(nodo.regla)}</span></summary>
@@ -63,6 +72,7 @@ function nodoHTML(nodo, profundidad = 0) {
     </div></details></li>`;
 }
 
+/** Envuelve el árbol de explicación con controles para expandirlo o contraerlo. */
 export function explicacionHTML(resultado) {
   if (!resultado) return '';
   return `<section class="explicacion"><div class="cabecera-explicacion"><h2 class="titulo-tiza">Evaluación paso a paso</h2><div><button type="button" class="enlace" data-action="expandir">Expandir todo</button><button type="button" class="enlace" data-action="contraer">Contraer todo</button></div></div><ol class="arbol-explicacion raiz">${nodoHTML(resultado)}</ol></section>`;

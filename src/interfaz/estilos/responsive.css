@@ -1,3 +1,9 @@
+/*
+ * Ajustes de distribución según el ancho de pantalla.
+ * A medida que se reduce el espacio, se apilan paneles, se adapta el árbol
+ * y la navegación pasa a tener desplazamiento horizontal. Cada bloque
+ * modifica solo las reglas que necesitan cambiar respecto a la vista amplia.
+ */
 @media (min-width: 1600px) {
   .pizarra { padding-inline: 64px; }
 }

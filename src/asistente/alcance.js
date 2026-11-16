@@ -1,9 +1,16 @@
+/**
+ * Detección local de preguntas que piden resolver o evaluar un ejercicio.
+ * Antes de consultar a la IA, se buscan expresiones y notaciones habituales
+ * para orientar al evaluador o a su explicación. Es un filtro de texto,
+ * no un analizador de fórmulas ni una comprobación de su valor de verdad.
+ */
 export const SOLO_TEORIA = 'Para evaluar tu fórmula, pulsa «Evaluar fórmula». El resultado lo calcula el algoritmo. Después, abre «Entender mi resultado» para revisar sus pasos. Aquí puedo ayudarte con la teoría del curso.';
 export const EXPLICAR_RESULTADO = 'Para entender por qué tu fórmula resultó verdadera o falsa, abre «Entender mi resultado». Allí verás el resultado y los pasos calculados por el algoritmo. Si aún no la has evaluado, pulsa «Evaluar fórmula» primero.';
 
 const normalizar = (pregunta) => pregunta.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 const pideExplicacion = (texto) => /\b(?:por que|(?:explica|justifica)(?:r)?(?:me)?|motivo|razon)\b/u.test(texto);
 
+/** Reconoce referencias al valor de verdad o al resultado en una pregunta ya normalizada. */
 function preguntaPorResultado(texto) {
   const referencia = /\b(?:la formula|el resultado|la evaluacion)\b/u.test(texto);
   const valorDeVerdad = /\b(?:verdadero|verdadera|falso|falsa)\b/u.test(texto);
@@ -12,12 +19,17 @@ function preguntaPorResultado(texto) {
   return (referencia && valorDeVerdad) || explicaResultado || solicitaValor;
 }
 
+/** Elige el aviso: explicar un resultado existente o indicar dónde evaluar la fórmula. */
 export function respuestaParaEvaluacion(pregunta) {
   const texto = normalizar(pregunta);
   return pideExplicacion(texto) || preguntaPorResultado(texto) ? EXPLICAR_RESULTADO : SOLO_TEORIA;
 }
 
-/** Intercepta solicitudes explícitas y fórmulas concretas antes de consumir la API. */
+/**
+ * Intercepta solicitudes explícitas y fórmulas concretas antes de consumir la API.
+ * @param {string} pregunta
+ * @returns {boolean} true si coincide con alguno de los patrones de evaluación
+ */
 export function solicitaEvaluacion(pregunta) {
   const texto = normalizar(pregunta);
   return preguntaPorResultado(texto)
