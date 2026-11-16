@@ -1,0 +1,33 @@
+# Copiar a /etc/nginx/sites-enabled/tautologia en el servidor.
+server {
+    listen 80;
+    server_name tautologia.jhgo.online;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name tautologia.jhgo.online;
+    ssl_certificate /etc/nginx/ssl/cloudflare.crt;
+    ssl_certificate_key /etc/nginx/ssl/cloudflare.key;
+
+    location /api/ {
+        # Las fotos pesan hasta 3 MB; el límite de nginx por omisión es 1 MB.
+        client_max_body_size 4m;
+        proxy_pass http://127.0.0.1:3241;
+        proxy_read_timeout 60s;
+        # El backend compara el Origin con el Host: hay que conservar el Host.
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:3240;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

@@ -1,0 +1,29 @@
+# Producción en el servidor: /home/nandez/projects/mate/tautologia (tautologia.jhgo.online).
+# La clave va en .env (copiar de .env.example); este archivo no tiene secretos.
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: tautologia_frontend
+    ports:
+      - "127.0.0.1:3240:80"
+    restart: unless-stopped
+    networks:
+      - tautologia_net
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: tautologia_backend
+    ports:
+      - "127.0.0.1:3241:3001"
+    env_file: .env
+    restart: unless-stopped
+    networks:
+      - tautologia_net
+
+networks:
+  tautologia_net:
+    driver: bridge
