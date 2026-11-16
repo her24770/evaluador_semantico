@@ -15,8 +15,8 @@
   body { border-width: 10px; padding: 6px; }
   .pizarra { min-height: calc(100vh - 32px); padding: 24px; }
   .cabecera { gap: 16px; }
-  .marca { font-size: 48px; }
   .identidad { gap: 14px; }
+  .marca-tiza { width: 42px; height: 56px; }
   .nombre-app { font-size: 29px; }
   .navegacion { margin-top: 24px; }
   .navegacion button { font-size: 14px; }
@@ -39,10 +39,11 @@
   .arbol-controles button { padding-inline: 8px; }
   body { border-width: 7px; padding: 5px; }
   .pizarra { min-height: calc(100vh - 24px); padding: 20px 16px; }
-  .nombre-app { font-size: 24px; }
-  .cabecera { gap: 16px; }
-  .marca { font-size: 41px; }
   .identidad { gap: 10px; }
+  .marca-tiza { width: 34px; height: 46px; }
+  .nombre-app { font-size: 24px; }
+  .lema-app { font-size: 14px; }
+  .cabecera { gap: 16px; }
   .navegacion { display: flex; margin-top: 16px; gap: 20px; overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--borde) transparent; }
   .navegacion button { flex: none; padding: 10px 1px 14px; font-size: 14px; white-space: nowrap; }
   .numero-seccion { font-size: 11px; margin-bottom: 4px; }

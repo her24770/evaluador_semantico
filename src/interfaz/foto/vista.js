@@ -12,7 +12,7 @@ export function panelFotoHTML(estado) {
   return `<section class="panel foto-panel" id="foto-panel" aria-labelledby="foto-titulo">
     <h2 id="foto-titulo" class="titulo-tiza">Leer fórmula desde una foto</h2>
     <p class="ayuda">Sube una foto o captura de una fórmula. La app la lee, te deja corregirla y te dice si se puede evaluar.</p>
-    <label class="boton secundario foto-subir">📷 ${foto.imagen ? 'Cambiar foto' : 'Subir o tomar foto'}
+    <label class="boton secundario foto-subir">${foto.imagen ? 'Cambiar foto' : 'Subir o tomar foto'}
       <input type="file" accept="image/*" data-foto="archivo" class="foto-archivo">
     </label>
     <p class="ayuda">La foto se envía a OpenAI para leerla. Revisa siempre lo que se leyó antes de usarlo.</p>

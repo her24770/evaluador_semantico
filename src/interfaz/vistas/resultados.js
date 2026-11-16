@@ -8,7 +8,7 @@ export function resultados(estado, revision, ocupado = false, fallo = '') {
   const formula = resultado?.formula ?? (revision.ast ? aCadena(revision.ast) : estado.formula);
   return `<section class="resultado-formula" aria-labelledby="formula-consulta">
     <div><h2 id="formula-consulta" class="titulo-tiza">${resultado ? 'Fórmula evaluada' : 'Fórmula a evaluar'}</h2>
-    <p class="resultado-expresion mono">${escapar(formula || 'Aún no has ingresado una fórmula.')}</p></div>
+    <p class="resultado-expresion">${escapar(formula || 'Aún no has ingresado una fórmula.')}</p></div>
     <button type="button" class="boton secundario" data-action="editar-formula">${formula ? 'Editar fórmula' : 'Ingresar fórmula'}</button></section>
     <div class="rejilla-resultados ${resultado ? '' : 'sin-evaluacion'}">
       <div id="dictamen-contenedor">${dictamen({ ...estado, resultado }, revision, ocupado, fallo)}</div>

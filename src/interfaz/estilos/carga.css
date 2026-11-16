@@ -2,8 +2,5 @@
 html { background: #17392f; }
 #app[aria-busy='true'] { visibility: hidden; }
 
-:root[data-fuentes='alternativas'] {
-  --fuente: system-ui, sans-serif;
-  --manuscrita: system-ui, sans-serif;
-  --mono: ui-monospace, monospace;
-}
+/* Las familias conservan su fallback normal mientras descargan. Nunca se
+   sustituyen las variables: font-display permite usar cada fuente al llegar. */

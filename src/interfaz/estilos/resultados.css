@@ -1,6 +1,6 @@
 .resultado-formula { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: start; gap: 20px; margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--linea); }
 .resultado-formula > div { min-width: 0; flex: 1 1 280px; }
-.resultado-expresion { margin: 16px 0 0; font-size: clamp(24px, 3vw, 36px); line-height: 1.5; overflow-wrap: anywhere; }
+.resultado-expresion { margin: 16px 0 0; font-family: var(--fuente); font-size: clamp(24px, 3vw, 36px); font-weight: 500; line-height: 1.5; overflow-wrap: anywhere; }
 .rejilla-resultados > div { min-width: 0; }
 .rejilla-resultados .explicacion { margin: 0; padding: 0; border: 0; }
 .resultado-datos { margin-top: 28px; }
