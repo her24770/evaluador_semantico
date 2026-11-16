@@ -9,7 +9,7 @@
  *   implica  ::= disyun ( '→' implica )?            → asocia a la derecha
  *   disyun   ::= conjun ( '∨' conjun )*
  *   conjun   ::= unaria ( '∧' unaria )*
- *   unaria   ::= '¬' unaria | ('∀' | '∃') variable unaria | atómica
+ *   unaria   ::= '¬' unaria | ('∀' | '∃') variable '.'? unaria | atómica
  *   atómica  ::= '(' fórmula ')'
  *              | P '(' término, …, término ')'       P predicado n-ario
  *              | término '=' término  |  término '≠' término
@@ -17,6 +17,9 @@
  *
  * ¬, ∀x y ∃x afectan solo a la fórmula que tienen inmediatamente después,
  * por eso en clase se escribe ∀x(P(x) → Q(x)) con paréntesis.
+ *
+ * También se acepta el predicado pegado a la variable: ∀xP(x) se lee como ∀x P(x)
+ * cuando P está declarado (ver separarVariablePegada).
  *
  * Forma de los nodos: ver docs/CONTRATO.md.
  */
@@ -111,6 +114,7 @@ function analizarDesde(texto, firma, inicio) {
 
     if (t.tipo === 'PARATODO' || t.tipo === 'EXISTE') {
       avanzar();
+      const pegada = separarVariablePegada();
       const v = actual();
       if (v.tipo !== 'IDENT') {
         throw new ErrorLogico('sintaxis', `Después de ${t.texto} debe ir una variable, pero se encontró ${describir(v)}.`, v.pos);
@@ -121,15 +125,53 @@ function analizarDesde(texto, firma, inicio) {
       }
       revisarNombreVariable(v);
       avanzar();
+      if (actual().tipo === 'PUNTO') avanzar(); // ∀x.P(x)
+      let cuerpo;
+      try {
+        cuerpo = unaria();
+      } catch (error) {
+        // ∀xQ(x) con Q sin declarar: el error de abajo no explicaría el problema real.
+        if (pegada && error instanceof ErrorLogico) {
+          error.message += ` ¿Querías escribir ${t.texto}${pegada.variable} ${pegada.resto}(…)? Para eso ${pegada.resto} debe estar declarado en Lenguaje.`;
+        }
+        throw error;
+      }
       return {
         tipo: t.tipo === 'PARATODO' ? 'paratodo' : 'existe',
         variable: v.texto,
-        cuerpo: unaria(),
+        cuerpo,
         pos: t.pos,
       };
     }
 
     return atomica();
+  }
+
+  /**
+   * ∀xP(x): el lexer lee "xP" como un solo nombre, porque los nombres pueden tener
+   * varias letras (x1, menor…). Justo después de ∀ o ∃, si ese nombre no está
+   * declarado y va pegado a "(", se separa en variable + símbolo declarado:
+   *   ∀xP(x)  →  ∀x P(x)        ∀x∃yR(x, y)  →  ∀x ∃y R(x, y)
+   * Se usa el símbolo declarado más largo y la variable debe ser un nombre válido.
+   * Si no se puede separar, devuelve una pista para el mensaje de error.
+   */
+  function separarVariablePegada() {
+    const v = actual();
+    const siguiente = tokens[k + 1];
+    const declarado = (nombre) => firma.funciones.has(nombre) || firma.predicados.has(nombre);
+    if (v.tipo !== 'IDENT' || declarado(v.texto) || siguiente?.tipo !== 'ABRE'
+      || siguiente.pos !== v.pos + v.texto.length) return null;
+    for (let corte = 1; corte < v.texto.length; corte++) {
+      const variable = v.texto.slice(0, corte);
+      const simbolo = v.texto.slice(corte);
+      if (declarado(simbolo) && !declarado(variable) && !/^\p{N}/u.test(variable) && !/['_]$/.test(variable)) {
+        tokens.splice(k, 1,
+          { tipo: 'IDENT', texto: variable, pos: v.pos },
+          { tipo: 'IDENT', texto: simbolo, pos: v.pos + corte });
+        return null;
+      }
+    }
+    return v.texto.length > 1 ? { variable: v.texto[0], resto: v.texto.slice(1) } : null;
   }
 
   // --- Fórmulas atómicas ------------------------------------------------------

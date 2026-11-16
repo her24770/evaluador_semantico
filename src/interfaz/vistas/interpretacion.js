@@ -27,12 +27,23 @@ function relacion(simbolo, dominio) {
     ${dominio.length && aridad <= 8 ? `<details class="constructor"><summary>Construir una tupla con el dominio</summary><div class="constructor-tupla" data-constructor="${simbolo.id}">${Array.from({ length: aridad }, (_, i) => `<label>Elemento ${i + 1}<select data-tupla-elemento>${opciones(dominio)}</select></label>`).join('')}<button type="button" class="boton secundario" data-action="agregar-tupla" data-id="${simbolo.id}">Añadir tupla</button></div><p class="ayuda" data-aviso-tupla role="status"></p></details>` : ''}`;
 }
 
+/** Constantes: una línea "cᴵ = [elemento]" por cada una, en vez de una tabla de una fila. */
+function constantes(lista, dominio) {
+  if (!dominio.length) return '<p class="vacio">Define un dominio válido para elegir sus valores.</p>';
+  return `<p class="ayuda">Elige qué elemento de 𝒟 nombra cada constante.</p>
+    <div class="valores-constantes">${lista.map((c) => `<div class="fila-constante">
+      <label for="constante-${c.id}" class="mono">${escapar(c.nombre || '?')}ᴵ =</label>
+      <select id="constante-${c.id}" data-constante="${c.id}">${opciones(dominio, c.valor)}</select>
+    </div>`).join('')}</div>`;
+}
+
 export function interpretacion(estado, revision, paginas) {
+  const listaConstantes = estado.constantes ?? [];
   const valido = !revision.errores.lenguaje.length;
   return `${panel('Dominio 𝒟', `<label for="dominio">Elementos</label><input id="dominio" data-entrada="dominioTexto" value="${escapar(estado.dominioTexto)}" placeholder="a, b, c" spellcheck="false" aria-describedby="ayuda-dominio"><p id="ayuda-dominio" class="ayuda">Separa los elementos con comas. El dominio debe ser no vacío y sin repeticiones. Las tablas se actualizan al salir del campo.</p>`)}
     <div id="errores-interpretacion" aria-live="polite">${estado.dominioTexto || estado.evaluacionSolicitada ? erroresHTML(revision.errores.interpretacion, 'interpretacion') : ''}</div>
     ${!valido ? '<p class="aviso">Corrige primero los símbolos y las aridades en Lenguaje.</p>' : `<div class="rejilla-doble">
-      <div>${estado.funciones.length ? estado.funciones.map((s) => panel(`${escapar(s.nombre)} <span class="subtitulo-panel">/ ${Number(s.aridad) === 0 ? 'constante' : `aridad ${escapar(s.aridad)}`}</span>`, revision.dominio.length ? tablaFuncion(s, revision.dominio, paginas) : '<p class="vacio">Define un dominio válido para completar esta tabla.</p>')).join('') : panel('Funciones', '<p class="vacio">Tu lenguaje no tiene funciones ni constantes.</p>')}</div>
+      <div>${listaConstantes.length ? panel('Constantes', constantes(listaConstantes, revision.dominio)) : ''}${estado.funciones.length ? estado.funciones.map((s) => panel(`${escapar(s.nombre)} <span class="subtitulo-panel">/ ${Number(s.aridad) === 0 ? 'constante' : `aridad ${escapar(s.aridad)}`}</span>`, revision.dominio.length ? tablaFuncion(s, revision.dominio, paginas) : '<p class="vacio">Define un dominio válido para completar esta tabla.</p>')).join('') : listaConstantes.length ? '' : panel('Funciones', '<p class="vacio">Tu lenguaje no tiene constantes ni funciones.</p>')}</div>
       <div>${estado.predicados.length ? estado.predicados.map((s) => panel(`${escapar(s.nombre)}ᴵ <span class="subtitulo-panel">/ aridad ${escapar(s.aridad)}</span>`, relacion(s, revision.dominio))).join('') : panel('Relaciones', '<p class="vacio">Tu lenguaje no tiene predicados.</p>')}</div>
     </div>`}`;
 }

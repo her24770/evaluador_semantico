@@ -160,7 +160,7 @@ export function iniciarInterfaz(raiz) {
     try {
       const r = await leerFormulaDeFoto({
         imagen: estado.foto.imagen, senal: control.signal,
-        simbolos: [...estado.funciones, ...estado.predicados].map((s) => s.nombre.trim()).filter(Boolean),
+        simbolos: [...estado.constantes, ...estado.funciones, ...estado.predicados].map((s) => s.nombre.trim()).filter(Boolean),
       });
       if (lecturaFoto !== control) return;
       if (r.legible) Object.assign(estado.foto, { fase: 'listo', texto: r.formula, leida: r.leida, dudas: r.dudas });
@@ -200,6 +200,7 @@ export function iniciarInterfaz(raiz) {
     else if (d.campo) estado[d.tipo].find((s) => s.id === d.id)[d.campo] = elemento.value;
     else if (d.tabla) guardarPropio(estado.funciones.find((s) => s.id === d.tabla).tabla, d.clave, elemento.value);
     else if (d.relacion) estado.predicados.find((s) => s.id === d.relacion).relacion = elemento.value;
+    else if (d.constante) estado.constantes.find((s) => s.id === d.constante).valor = elemento.value;
     else if (d.variable) guardarPropio(estado.entorno, d.variable, elemento.value);
     else return;
     detenerEvaluacion();
@@ -282,7 +283,7 @@ export function iniciarInterfaz(raiz) {
       case 'agregar-simbolo': {
         detenerEvaluacion();
         const id = `s${++contador}`;
-        estado[d.tipo].push({ id, nombre: '', aridad: '1', tabla: {}, relacion: '' });
+        estado[d.tipo].push({ id, nombre: '', aridad: '1', tabla: {}, relacion: '', valor: '' });
         invalidarResultado(estado);
         revision = revisarEntrada(estado);
         renderizar();
@@ -321,7 +322,11 @@ export function iniciarInterfaz(raiz) {
         const faltantes = simbolosNoDeclarados(estado.foto.texto, revision.firma);
         if (!faltantes.length) break;
         detenerEvaluacion();
-        for (const s of faltantes) estado[s.tipo].push({ id: `s${++contador}`, nombre: s.nombre, aridad: String(s.aridad), tabla: {}, relacion: '' });
+        for (const s of faltantes) {
+          // c() se declara como constante, no como función de aridad 0.
+          const tipo = s.tipo === 'funciones' && s.aridad === 0 ? 'constantes' : s.tipo;
+          estado[tipo].push({ id: `s${++contador}`, nombre: s.nombre, aridad: String(s.aridad), tabla: {}, relacion: '', valor: '' });
+        }
         invalidarResultado(estado);
         revision = revisarEntrada(estado);
         renderizar();

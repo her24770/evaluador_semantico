@@ -3,7 +3,8 @@ import { validarInterpretacion, validarEntorno, evaluar, evaluarExhaustivo, cont
 
 export function crearEstado() {
   return {
-    seccion: 'lenguaje', funciones: [], predicados: [], dominioTexto: '',
+    // constantes: { id, nombre, valor }. Para sintaxis y semántica son funciones de aridad 0.
+    seccion: 'lenguaje', constantes: [], funciones: [], predicados: [], dominioTexto: '',
     formula: '', entorno: {}, sustitucion: { variable: '', termino: '' }, resultado: null, tablaCuantificadores: null, evaluacionSolicitada: false,
     foto: crearEstadoFoto(),
   };
@@ -66,12 +67,17 @@ export function revisarEntrada(estado) {
     } else {
       const datos = {
         dominioTexto: estado.dominioTexto,
-        funciones: Object.fromEntries(estado.funciones.map((s) => [s.nombre.trim(),
-          Object.fromEntries(Object.entries(s.tabla ?? {}).filter(([clave]) => {
-            const tupla = clave === '' ? [] : clave.split(',');
-            return tupla.length === Number(s.aridad) && tupla.every((e) => dominioLeido.dominio.includes(e));
-          })),
-        ])),
+        funciones: Object.fromEntries([
+          // Una constante es una tabla con una sola entrada: la clave vacía ''.
+          ...(estado.constantes ?? []).map((c) => [c.nombre.trim(),
+            c.valor && dominioLeido.dominio.includes(c.valor) ? { '': c.valor } : {}]),
+          ...estado.funciones.map((s) => [s.nombre.trim(),
+            Object.fromEntries(Object.entries(s.tabla ?? {}).filter(([clave]) => {
+              const tupla = clave === '' ? [] : clave.split(',');
+              return tupla.length === Number(s.aridad) && tupla.every((e) => dominioLeido.dominio.includes(e));
+            })),
+          ]),
+        ]),
         relaciones: Object.fromEntries(estado.predicados.map((s) => [s.nombre.trim(), s.relacion ?? ''])),
       };
       const inter = validarInterpretacion(lengua.firma, datos);

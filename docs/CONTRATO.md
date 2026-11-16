@@ -32,6 +32,11 @@ import {
 
 La **firma** es `{ funciones: Map(nombre → aridad), predicados: Map(nombre → aridad) }`.
 Una función con aridad 0 es una **constante**.
+`validarLenguaje` acepta además `constantes: [{ nombre }]` (así las declara la interfaz):
+se agregan a `firma.funciones` con aridad 0, de modo que el resto de los módulos no cambia.
+
+`analizar` acepta el predicado pegado a la variable del cuantificador (`∀xP(x)` = `∀x P(x)`,
+si `P` está declarado) y un punto opcional después de la variable (`∀x.P(x)`).
 
 ## 2. Forma del árbol (AST)
 

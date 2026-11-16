@@ -15,6 +15,11 @@ input + .ayuda, textarea + .ayuda { margin-top: 10px; }
 .declaraciones { display: grid; gap: 12px; margin-bottom: 20px; }
 .fila-simbolo { display: grid; grid-template-columns: minmax(0, 1fr) 68px 40px; align-items: end; gap: 12px; }
 .fila-simbolo label { margin: 0; }
+.fila-simbolo.sin-aridad { grid-template-columns: minmax(0, 1fr) 40px; }
+.valores-constantes { display: grid; gap: 10px; }
+.fila-constante { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); align-items: center; gap: 12px; }
+.fila-constante label { margin: 0; font-size: 18px; overflow-wrap: anywhere; }
+.fila-constante select { margin: 0; }
 .quitar { display: flex; align-items: center; justify-content: center; width: 40px; height: 44px; padding: 0; border: 0; border-radius: var(--radio-control); background: transparent; color: var(--tiza-suave); font-size: 26px; }
 .quitar:hover { color: var(--coral); background: var(--panel); }
 .errores { margin: 16px 0; padding-left: 20px; font-size: 14px; }

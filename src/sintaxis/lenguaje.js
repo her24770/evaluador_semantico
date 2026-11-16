@@ -17,7 +17,11 @@ export const RESERVADAS = new Set(['forall', 'paratodo', 'exists', 'existe']);
 /**
  * Revisa la declaración del lenguaje y construye la firma.
  *
- * @param {{funciones: {nombre: string, aridad: number|string}[],
+ * Las constantes pueden declararse aparte (solo con nombre) o como funciones de aridad 0.
+ * En la firma son lo mismo: funciones de aridad 0.
+ *
+ * @param {{constantes?: {nombre: string}[],
+ *          funciones: {nombre: string, aridad: number|string}[],
  *          predicados: {nombre: string, aridad: number|string}[]}} declaracion
  * @returns {{errores: ErrorLogico[],
  *            firma: {funciones: Map<string, number>, predicados: Map<string, number>}}}
@@ -28,7 +32,7 @@ export function validarLenguaje(declaracion) {
   const predicados = new Map();
   const usados = new Set();
 
-  function revisar(lista, tipo, aridadMinima, destino) {
+  function revisar(lista, tipo, aridadMinima, destino, aridadFija) {
     lista.forEach((simbolo, i) => {
       const nombre = String(simbolo.nombre ?? '').trim();
       const etiqueta = `${tipo} #${i + 1}`;
@@ -54,7 +58,7 @@ export function validarLenguaje(declaracion) {
         return;
       }
 
-      const textoAridad = String(simbolo.aridad ?? '').trim();
+      const textoAridad = aridadFija === undefined ? String(simbolo.aridad ?? '').trim() : String(aridadFija);
       const aridad = Number(textoAridad);
       if (textoAridad === '' || !Number.isInteger(aridad) || aridad < aridadMinima) {
         errores.push(new ErrorLogico('aridad', `${etiqueta} "${nombre}": la aridad debe ser un entero ≥ ${aridadMinima}.`));
@@ -66,6 +70,7 @@ export function validarLenguaje(declaracion) {
     });
   }
 
+  revisar(declaracion.constantes ?? [], 'Constante', 0, funciones, 0);
   revisar(declaracion.funciones ?? [], 'Símbolo funcional', 0, funciones);
   revisar(declaracion.predicados ?? [], 'Predicado', 1, predicados);
   return { errores, firma: { funciones, predicados } };
