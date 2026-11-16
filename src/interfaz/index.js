@@ -1,5 +1,5 @@
 import './estilos/index.css';
-import { crearEstado, revisarEntrada, invalidarResultado, seccionPendiente } from './modelo.js';
+import { crearEstado, crearEstadoFoto, revisarEntrada, invalidarResultado, seccionPendiente } from './modelo.js';
 import { insertarSimbolo } from './editor.js';
 import { estructura, SECCIONES } from './componentes/estructura.js';
 import { erroresHTML, guardarPropio } from './componentes/comunes.js';
@@ -11,7 +11,10 @@ import { entorno } from './vistas/entorno.js';
 import { dictamen, resultados } from './vistas/resultados.js';
 import { montarArbol } from './arbol/visor.js';
 import { resultadoSustitucionHTML, calcularSustitucion } from './sustitucion/vista.js';
-import { aCadena } from '../sintaxis/index.js';
+import { aCadena, simbolosNoDeclarados } from '../sintaxis/index.js';
+import { panelFotoHTML, revisionFotoHTML } from './foto/vista.js';
+import { leerFormulaDeFoto } from './foto/lector.js';
+import { prepararImagen } from './foto/imagen.js';
 import { montarTablaCuantificadores } from './cuantificadores/visor.js';
 import { montarAsistente } from './asistente.js';
 
@@ -27,6 +30,7 @@ export function iniciarInterfaz(raiz) {
   let fallo = '';
   let visorArbol = null;
   let visorCuantificadores = null;
+  let lecturaFoto = null;
   const $ = (selector) => raiz.querySelector(selector);
   raiz.innerHTML = estructura();
   const asistente = montarAsistente(raiz);
@@ -101,6 +105,7 @@ export function iniciarInterfaz(raiz) {
       ['#entorno-resumen', resumenEntornoHTML(revision)],
       ['#sustitucion-resultado', resultadoSustitucionHTML(estado, revision)],
     ];
+    if ($('#foto-revision')) cambios.push(['#foto-revision', revisionFotoHTML(estado)]);
     visorCuantificadores?.destruir();
     visorCuantificadores = null;
     cambios.forEach(([selector, html]) => { const destino = $(selector); if (destino) destino.innerHTML = html; });
@@ -121,8 +126,66 @@ export function iniciarInterfaz(raiz) {
     evaluar();
   }
 
+  // --- Leer fórmula desde una foto ---------------------------------------------
+
+  function refrescarFoto(enfocar) {
+    const panelFoto = $('#foto-panel');
+    if (panelFoto) panelFoto.outerHTML = panelFotoHTML(estado);
+    if (enfocar) $(enfocar)?.focus();
+  }
+
+  async function cargarFoto(archivo) {
+    if (!archivo) return;
+    lecturaFoto?.abort();
+    try {
+      estado.foto = { ...crearEstadoFoto(), imagen: await prepararImagen(archivo) };
+    } catch (error) {
+      estado.foto = { ...crearEstadoFoto(), fase: 'error', error: error.message };
+      refrescarFoto();
+      anunciar(error.message);
+      return;
+    }
+    leerFoto();
+  }
+
+  async function leerFoto() {
+    if (!estado.foto.imagen) return;
+    lecturaFoto?.abort();
+    const control = new AbortController();
+    lecturaFoto = control;
+    const anterior = estado.foto.texto;
+    Object.assign(estado.foto, { fase: 'leyendo', error: '' });
+    refrescarFoto();
+    anunciar('Leyendo la fórmula de la foto…');
+    try {
+      const r = await leerFormulaDeFoto({
+        imagen: estado.foto.imagen, senal: control.signal,
+        simbolos: [...estado.funciones, ...estado.predicados].map((s) => s.nombre.trim()).filter(Boolean),
+      });
+      if (lecturaFoto !== control) return;
+      if (r.legible) Object.assign(estado.foto, { fase: 'listo', texto: r.formula, leida: r.leida, dudas: r.dudas });
+      else Object.assign(estado.foto, { fase: 'error', error: 'No encontré una fórmula en la foto. Prueba con una imagen más clara o más cerca.' });
+    } catch (error) {
+      if (lecturaFoto !== control) return;
+      if (error?.name === 'AbortError') Object.assign(estado.foto, { fase: anterior ? 'listo' : 'vacio', texto: anterior });
+      else Object.assign(estado.foto, { fase: 'error', error: error?.message || 'No se pudo leer la foto.' });
+    }
+    lecturaFoto = null;
+    refrescarFoto(estado.foto.fase === 'listo' ? '#foto-texto' : null);
+    anunciar(estado.foto.fase === 'listo' ? `Leí: ${estado.foto.texto}. Revísalo antes de usarlo.` : estado.foto.error);
+  }
+
   function guardarEntrada(elemento) {
     const d = elemento.dataset;
+    if (d.foto === 'archivo') return; // se procesa en el evento change
+    if (d.foto === 'texto') {
+      estado.foto.texto = elemento.value;
+      const destino = $('#foto-revision');
+      if (destino) destino.innerHTML = revisionFotoHTML(estado);
+      const usar = $('[data-action="usar-foto"]');
+      if (usar) usar.disabled = !elemento.value.trim();
+      return;
+    }
     // La sustitución no cambia la fórmula ni el resultado: solo se recalcula su panel.
     if (d.sustitucion) {
       estado.sustitucion[d.sustitucion] = elemento.value;
@@ -177,7 +240,7 @@ export function iniciarInterfaz(raiz) {
       renderizar();
       anunciar(fallo);
     };
-    worker.postMessage(estado);
+    worker.postMessage({ ...estado, foto: null });
     temporizador = setTimeout(() => {
       detenerEvaluacion();
       fallo = 'La evaluación superó los 10 segundos. Reduce el dominio o la complejidad de la fórmula y vuelve a intentarlo.';
@@ -188,6 +251,7 @@ export function iniciarInterfaz(raiz) {
 
   raiz.addEventListener('input', (e) => guardarEntrada(e.target));
   raiz.addEventListener('change', (e) => {
+    if (e.target.dataset.foto === 'archivo') { cargarFoto(e.target.files?.[0]); e.target.value = ''; return; }
     // Regenera las tablas al terminar de editar el dominio, sin interrumpir
     // la escritura. Los selectores ya emiten el evento input.
     if (e.target.dataset.entrada === 'dominioTexto') {
@@ -235,7 +299,51 @@ export function iniciarInterfaz(raiz) {
         $(`[data-action="agregar-simbolo"][data-tipo="${d.tipo}"]`).focus();
         break;
       }
-      case 'insertar': insertarSimbolo($('#formula'), d.simbolo, seleccion); break;
+      case 'insertar':
+        if (d.destino) {
+          // Si el campo no tiene el foco, el símbolo va al final y no al inicio.
+          const destino = $(`#${d.destino}`);
+          const fin = destino.value.length;
+          insertarSimbolo(destino, d.simbolo, document.activeElement === destino ? undefined : { inicio: fin, fin });
+        } else insertarSimbolo($('#formula'), d.simbolo, seleccion);
+        break;
+      case 'leer-foto': leerFoto(); break;
+      case 'cancelar-foto': lecturaFoto?.abort(); break;
+      case 'ampliar-foto': estado.foto.ampliada = !estado.foto.ampliada; refrescarFoto('[data-action="ampliar-foto"]'); break;
+      case 'descartar-foto': {
+        lecturaFoto?.abort();
+        lecturaFoto = null;
+        estado.foto = crearEstadoFoto();
+        refrescarFoto('.foto-archivo');
+        break;
+      }
+      case 'agregar-simbolos-foto': {
+        const faltantes = simbolosNoDeclarados(estado.foto.texto, revision.firma);
+        if (!faltantes.length) break;
+        detenerEvaluacion();
+        for (const s of faltantes) estado[s.tipo].push({ id: `s${++contador}`, nombre: s.nombre, aridad: String(s.aridad), tabla: {}, relacion: '' });
+        invalidarResultado(estado);
+        revision = revisarEntrada(estado);
+        renderizar();
+        $('[data-action="usar-foto"]')?.focus();
+        anunciar(`Se agregó ${faltantes.map((s) => s.nombre).join(', ')} al lenguaje. Completa su interpretación en la sección Interpretación.`);
+        break;
+      }
+      case 'usar-foto': {
+        const texto = estado.foto.texto.trim();
+        if (!texto) break;
+        detenerEvaluacion();
+        estado.formula = texto;
+        seleccion = { inicio: texto.length, fin: texto.length };
+        invalidarResultado(estado);
+        fallo = '';
+        revision = revisarEntrada(estado);
+        renderizar();
+        $('#formula').focus();
+        $('#formula').setSelectionRange(seleccion.inicio, seleccion.fin);
+        anunciar(`La fórmula ahora es ${texto}.`);
+        break;
+      }
       case 'evaluar': prepararEvaluacion(); break;
       case 'usar-sustitucion': {
         const r = calcularSustitucion(estado, revision);

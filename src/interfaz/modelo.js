@@ -5,7 +5,13 @@ export function crearEstado() {
   return {
     seccion: 'lenguaje', funciones: [], predicados: [], dominioTexto: '',
     formula: '', entorno: {}, sustitucion: { variable: '', termino: '' }, resultado: null, tablaCuantificadores: null, evaluacionSolicitada: false,
+    foto: crearEstadoFoto(),
   };
+}
+
+/** Panel "Leer fórmula desde una foto". fase: vacio | leyendo | listo | error */
+export function crearEstadoFoto() {
+  return { imagen: '', texto: '', leida: '', dudas: [], fase: 'vacio', error: '', ampliada: false };
 }
 
 export function leerDominioUI(texto) {

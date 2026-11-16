@@ -26,3 +26,6 @@ export function opciones(dominio, valor = '') {
 export function panel(titulo, contenido, clase = '') {
   return `<section class="panel ${clase}"><h2 class="titulo-tiza">${titulo}</h2>${contenido}</section>`;
 }
+
+// Panel de símbolos del editor de fórmula (también lo usa el panel de la foto).
+export const SIMBOLOS = [['¬', 'Negación'], ['∧', 'Conjunción'], ['∨', 'Disyunción'], ['→', 'Implicación'], ['∀', 'Para todo'], ['∃', 'Existe'], ['(', 'Abrir paréntesis'], [')', 'Cerrar paréntesis']];

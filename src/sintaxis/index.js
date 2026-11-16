@@ -10,3 +10,4 @@ export { analizar, analizarTermino } from './parser.js';
 export { sustituir, prepararSustitucion } from './sustitucion.js';
 export { recorrerOcurrencias, variablesLibres, variablesLigadas, esCerrada } from './variables.js';
 export { aCadena, aCadenaCompleta, terminoACadena } from './imprimir.js';
+export { normalizarFormula, simbolosNoDeclarados } from './normalizar.js';

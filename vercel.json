@@ -8,6 +8,9 @@
       "maxDuration": 30,
       "includeFiles": "teoria/{fuentes.json,*.md}",
       "excludeFiles": "teoria/pdf/**"
+    },
+    "api/leer-foto.js": {
+      "maxDuration": 30
     }
   }
 }
