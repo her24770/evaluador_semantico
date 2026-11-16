@@ -1,0 +1,128 @@
+[
+  {
+    "id": "tema-01",
+    "titulo": "Lenguajes formales",
+    "archivo": "MM3032 - 01 Lenguajes formales.pdf",
+    "paginas": 20,
+    "sha256": "ab57e3c9512f3063a500bc3cdae155f420630068eaf181667a66778bc678798e",
+    "contenido": "01-lenguajes-formales.md",
+    "original": "pdf/01-lenguajes-formales.pdf"
+  },
+  {
+    "id": "tema-02",
+    "titulo": "Lógica proposicional (enfoque sintáctico)",
+    "archivo": "MM3032 - 02 Lógica proposicional (enfoque sintáctico).pdf",
+    "paginas": 49,
+    "sha256": "157f30282a979b67dbc0bb490b3507d9d4e2cdc9160853a95ce59d1e200cb7e1",
+    "contenido": "02-logica-proposicional-sintaxis.md",
+    "original": "pdf/02-logica-proposicional-sintaxis.pdf"
+  },
+  {
+    "id": "tema-03",
+    "titulo": "Lógica proposicional (enfoque semántico)",
+    "archivo": "MM3032 - 03 Lógica proposicional (enfoque semántico).pdf",
+    "paginas": 9,
+    "sha256": "9d9c6d85d5add42b9df868ef7dde862813db66baf115f9204c6e27984242d263",
+    "contenido": "03-logica-proposicional-semantica.md",
+    "original": "pdf/03-logica-proposicional-semantica.pdf"
+  },
+  {
+    "id": "tema-04",
+    "titulo": "Validez de la lógica proposicional",
+    "archivo": "MM3032 - 04 Validez de la lógica proposicional.pdf",
+    "paginas": 16,
+    "sha256": "e732198befdb9bbd430a9ae06d928df4d4fe13bc536984c6b2352d9cfe1f49ef",
+    "contenido": "04-validez-proposicional.md",
+    "original": "pdf/04-validez-proposicional.pdf"
+  },
+  {
+    "id": "tema-05",
+    "titulo": "Completitud de la lógica proposicional",
+    "archivo": "MM3032 - 05 Completitud de la lógica proposicional.pdf",
+    "paginas": 10,
+    "sha256": "6073e26e3d31a4d96ef0ff2f68e05bd4091630da7d9d0ee86b943d09e2375b0b",
+    "contenido": "05-completitud-proposicional.md",
+    "original": "pdf/05-completitud-proposicional.pdf"
+  },
+  {
+    "id": "tema-06",
+    "titulo": "Consistencia y decidibilidad",
+    "archivo": "MM3032 - 06 Consistencia y decidibilidad.pdf",
+    "paginas": 9,
+    "sha256": "0e36ad0936035af28c9ddb62e4d4387aa51cd11c55f1a1dc5e7928f61ed9d576",
+    "contenido": "06-consistencia-decidibilidad.md",
+    "original": "pdf/06-consistencia-decidibilidad.pdf"
+  },
+  {
+    "id": "tema-07",
+    "titulo": "Lenguajes de primer orden",
+    "archivo": "MM3032 - 07 Lenguajes de primer orden (2).pdf",
+    "paginas": 29,
+    "sha256": "246bd8da6afbd469b758564c00ad5d02ded40dd35d5dc707701a487026fe590f",
+    "contenido": "07-lenguajes-primer-orden.md",
+    "original": "pdf/07-lenguajes-primer-orden.pdf"
+  },
+  {
+    "id": "tema-08",
+    "titulo": "Variables y sustituciones",
+    "archivo": "MM3032 - 08 Variables y sustituciones (2).pdf",
+    "paginas": 15,
+    "sha256": "75416e3743eae4f272808a777b824f438782008ca2e35e80d620ce41f98105d6",
+    "contenido": "08-variables-sustituciones.md",
+    "original": "pdf/08-variables-sustituciones.pdf"
+  },
+  {
+    "id": "tema-09",
+    "titulo": "Lógica de predicados (enfoque sintáctico)",
+    "archivo": "MM3032 - 09 Lógica de predicados (enfoque sintáctico) (2).pdf",
+    "paginas": 14,
+    "sha256": "2a76eeeeaceb0063539d9fd58c5d01aa3badf4c6fe9e57052e414a121430d05f",
+    "contenido": "09-predicados-sintaxis.md",
+    "original": "pdf/09-predicados-sintaxis.pdf"
+  },
+  {
+    "id": "tema-10",
+    "titulo": "Interpretaciones",
+    "archivo": "MM3032 - 10 Interpretaciones (1).pdf",
+    "paginas": 10,
+    "sha256": "d6d7628872be5d4fb9bdffda7c2015d01c564ada6ba21b4e0cfd3827368ae04a",
+    "contenido": "10-interpretaciones.md",
+    "original": "pdf/10-interpretaciones.pdf"
+  },
+  {
+    "id": "tema-11",
+    "titulo": "Entornos",
+    "archivo": "MM3032 - 11 Entornos (1).pdf",
+    "paginas": 14,
+    "sha256": "4fc117235638b8f92a63c33d5fbda3e08c6f986b5181a394e983b825542c4d29",
+    "contenido": "11-entornos-evaluacion.md",
+    "original": "pdf/11-entornos-evaluacion.pdf"
+  },
+  {
+    "id": "tema-12",
+    "titulo": "Epílogo de la lógica de predicados",
+    "archivo": "MM3032 - 12 Epílogo de la lógica de predicados (1).pdf",
+    "paginas": 41,
+    "sha256": "76cbdb1601c74ac4ed20d19842d1421e0d42a30da8875ca6c0f11e17c6d3e17a",
+    "contenido": "12-epilogo-predicados.md",
+    "original": "pdf/12-epilogo-predicados.pdf"
+  },
+  {
+    "id": "tema-13",
+    "titulo": "El sistema formal de la aritmética de Peano",
+    "archivo": "MM3032 - 13 El sistema formal de la aritmética de Peano.pdf",
+    "paginas": 17,
+    "sha256": "0d57a61342cc48ee6bf0929478b07c9e7d0759b72a813e02a7122c5869280d3f",
+    "contenido": "13-aritmetica-peano.md",
+    "original": "pdf/13-aritmetica-peano.pdf"
+  },
+  {
+    "id": "tema-14",
+    "titulo": "El teorema de incompletitud",
+    "archivo": "MM3032 - 14 El teorema de incompletitud.pdf",
+    "paginas": 40,
+    "sha256": "18b7e126810a61d2757adbf893f53a3a56c972f886369307760d3979b2ff6fac",
+    "contenido": "14-incompletitud.md",
+    "original": "pdf/14-incompletitud.pdf"
+  }
+]
