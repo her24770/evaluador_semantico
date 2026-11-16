@@ -18,8 +18,11 @@ const servidor = createServer((req, res) => {
 });
 servidor.requestTimeout = 15000;
 servidor.headersTimeout = 10000;
-servidor.listen(3001, '127.0.0.1', () => console.log('Asistente disponible en http://127.0.0.1:3001/api/chat y /api/leer-foto'));
+// En local escucha solo en 127.0.0.1; en Docker se usa HOST=0.0.0.0 (ver Dockerfile.backend).
+const HOST = process.env.HOST || '127.0.0.1';
+const PUERTO = Number(process.env.PORT) || 3001;
+servidor.listen(PUERTO, HOST, () => console.log(`Asistente disponible en http://${HOST}:${PUERTO}/api/chat y /api/leer-foto`));
 servidor.on('error', (error) => {
-  console.error(error.code === 'EADDRINUSE' ? 'El puerto 3001 está ocupado. Cierra el servidor anterior.' : 'No se pudo iniciar el servidor del asistente.');
+  console.error(error.code === 'EADDRINUSE' ? `El puerto ${PUERTO} está ocupado. Cierra el servidor anterior.` : 'No se pudo iniciar el servidor del asistente.');
   process.exitCode = 1;
 });
