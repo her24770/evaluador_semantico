@@ -17,6 +17,7 @@ const SIMBOLOS = [
   ['¬', 'NO'], ['~', 'NO'], ['!', 'NO'],
   ['∀', 'PARATODO'], ['∃', 'EXISTE'],
   ['=', 'IGUAL'], ['(', 'ABRE'], [')', 'CIERRA'], [',', 'COMA'],
+  ['.', 'PUNTO'], // solo vale después de la variable de un cuantificador: ∀x.P(x)
 ];
 
 const PALABRAS = {

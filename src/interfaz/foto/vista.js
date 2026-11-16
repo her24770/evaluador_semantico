@@ -72,7 +72,8 @@ export function revisionFotoHTML(estado) {
   }
   const faltantes = simbolosNoDeclarados(texto, revision.firma);
   if (faltantes.length) {
-    const lista = faltantes.map((s) => `<span class="mono">${escapar(s.nombre)}</span> (${s.tipo === 'predicados' ? 'predicado' : 'función'}, aridad ${s.aridad})`).join(', ');
+    const tipo = (s) => (s.tipo === 'predicados' ? `predicado, aridad ${s.aridad}` : s.aridad === 0 ? 'constante' : `función, aridad ${s.aridad}`);
+    const lista = faltantes.map((s) => `<span class="mono">${escapar(s.nombre)}</span> (${tipo(s)})`).join(', ');
     return `<p class="aviso">⚠ Usa símbolos que no están en el lenguaje: ${lista}.</p>
       <button type="button" class="boton secundario" data-action="agregar-simbolos-foto">Agregarlos al lenguaje</button>`;
   }
@@ -81,7 +82,7 @@ export function revisionFotoHTML(estado) {
   }
   const tipo = revision.libres.length ? 'Abierta' : 'Cerrada';
   const pendientes = [];
-  if (revision.errores.interpretacion.length) pendientes.push('completar la interpretación (dominio, funciones y relaciones)');
+  if (revision.errores.interpretacion.length) pendientes.push('completar la interpretación (dominio, constantes, funciones y relaciones)');
   if (revision.errores.entorno.length) pendientes.push(`dar valor a ${revision.libres.length === 1 ? 'la variable libre' : 'las variables libres'} ${revision.libres.map(escapar).join(', ')}`);
   return `<p class="correcto">✓ Fórmula bien formada · ${tipo}</p>
     <p class="ayuda">${pendientes.length ? `Se puede usar. Para evaluarla falta ${pendientes.join(' y ')}.` : 'Se puede usar y evaluar con la interpretación actual.'}</p>`;
