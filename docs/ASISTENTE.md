@@ -23,11 +23,18 @@ La conservación íntegra del contenido visual se apoya en los PDF originales. L
 
 ## Bloque 2 — Endpoint y generación con OpenAI
 
-La ruta `POST /api/chat` responde preguntas teóricas mediante OpenAI. Se ejecuta en Node 22.12 o superior, sin instalar un SDK ni dependencias de producción. `api/chat.js` es la misma entrada en local y en Vercel; el servicio carga la teoría una vez por instancia y reutiliza el buscador.
+La ruta `POST /api/chat` responde exclusivamente preguntas teóricas mediante OpenAI. La explicación de los ejercicios se genera localmente con los pasos del algoritmo. El servidor usa Node 22.12 o superior, sin SDK ni dependencias de producción. `api/chat.js` es la misma entrada en local y en Vercel; carga la teoría una vez por instancia y reutiliza el buscador.
 
 | Archivo | Responsabilidad |
 | --- | --- |
 | `src/asistente/servicio.js` | Validar la pregunta, elegir evidencia y preparar las instrucciones del tutor. |
+| `src/asistente/contrato.js` | Contrato y presupuestos compartidos por el navegador y el servidor. |
+| `src/asistente/alcance.js` | Interceptar solicitudes explícitas de evaluación antes de llamar a OpenAI. |
+| `src/asistente/explicacion.js` | Plantillas que leen los valores y razones del algoritmo, sin recalcular. |
+| `src/asistente/conversacion.js` | Historial teórico, peticiones, cancelación y descarte de respuestas tardías. |
+| `src/interfaz/asistente.js` | Panel del tutor y sus interacciones accesibles. |
+| `src/interfaz/explicacion-tutor.js` | Explorar los pasos ya calculados, con paginación. |
+| `src/interfaz/estilos/asistente.css` | Presentación del panel con los tokens de la pizarra. |
 | `src/asistente/openai.js` | Una petición de generación a OpenAI, con tiempo y salida limitados. |
 | `src/asistente/http.js` | Leer JSON, limitar solicitudes y convertir errores en respuestas seguras. |
 | `src/asistente/error.js` | Definir los errores que pueden mostrarse al cliente. |
@@ -54,7 +61,7 @@ No es necesario instalar dependencias nuevas. Se conserva Chat Completions para 
 
 ### Contrato HTTP
 
-La entrada es exclusivamente un objeto JSON con `pregunta`, entre 1 y 1,200 caracteres. Campos adicionales como `historial` o `contexto` todavía se rechazan: su integración corresponde al bloque 3. Se requiere `Content-Type: application/json`.
+La entrada es un objeto JSON con `pregunta`, entre 1 y 1,200 caracteres, e `historial` opcional. El endpoint rechaza `contexto`, `modo`, resultados y cualquier otro campo adicional, incluso si está vacío. Se requiere `Content-Type: application/json`:
 
 ```json
 { "pregunta": "¿Qué es una variable libre?" }
@@ -89,7 +96,7 @@ Los errores usan `{ "error": { "codigo": "...", "mensaje": "..." } }`. Los lími
 | 400 | JSON incorrecto, pregunta vacía o demasiado larga, campos no admitidos. |
 | 403 | Se recibió una cabecera Origin de un host distinto o inválida. |
 | 405 | Método distinto de POST. |
-| 413 | El cuerpo supera 8,192 bytes. |
+| 413 | El cuerpo supera 12,288 bytes. |
 | 415 | Tipo de contenido distinto de JSON. |
 | 429 | Límite local de consultas, petición en curso o límite temporal de OpenAI. |
 | 502 | Error de conexión/proveedor, respuesta inválida o explicación incompleta. |
@@ -105,7 +112,7 @@ Los códigos conocidos `insufficient_quota` y `billing_hard_limit_reached` se co
 
 Se revisan hasta diez resultados de búsqueda y se seleccionan hasta cuatro fragmentos completos, con un máximo conjunto de 10,000 bytes de evidencia JSON en UTF-8. Se omiten portadas, objetivos, cierres, coincidencias de baja cobertura y resultados con menos de la mitad de la puntuación del mejor candidato. Esta selección no cambia la transcripción del material. Si una diapositiva no cabe, se omite completa para no cortar una fórmula o una demostración.
 
-El límite de bytes es un control de tamaño, no un cálculo exacto de tokens. La tokenización de símbolos matemáticos puede consumir más que la del texto común. No se envía el curso completo ni un historial. Cada pregunta admitida con evidencia genera una sola petición de Chat Completions y permite hasta 1,200 tokens de salida, incluidos los que use internamente el modelo. Las respuestas terminadas por límite de longitud no se presentan como explicaciones completas. No se reintenta automáticamente una consulta fallida.
+El límite de bytes es un control de tamaño, no un cálculo exacto de tokens. La tokenización de símbolos matemáticos puede consumir más que la del texto común. Se envían únicamente fragmentos seleccionados y un historial teórico breve, sin adjuntar el ejercicio ni el curso completo. Cada pregunta admitida con evidencia genera una sola petición de Chat Completions y permite hasta 1,200 tokens de salida, incluidos los que use internamente el modelo. Las respuestas terminadas por límite de longitud no se presentan como explicaciones completas. No se reintenta automáticamente una consulta fallida.
 
 Este es ahora un servicio de pago por uso de OpenAI. El presupuesto de tamaño y los límites de frecuencia reducen el consumo, pero no implementan un tope acumulado en dólares. Para estimar costo, aplicar la tarifa vigente del modelo a los tokens de entrada y salida, considerando descuentos de caché cuando correspondan. Las respuestas incompletas o canceladas también pueden consumir tokens; el registro mostrado por la terminal cubre las consultas que terminaron correctamente, no sustituye el panel de consumo de la cuenta. No se usan herramientas de búsqueda web, almacenamiento vectorial de pago ni carga de PDF a OpenAI.
 
@@ -132,10 +139,53 @@ Se verificaron mediante pruebas automatizadas la selección y el presupuesto de 
 
 Con OpenAI se probaron dos generaciones reales: variables libres y ligadas (510 tokens de entrada y 83 de salida) y captura de variables (877 de entrada y 137 de salida). El modelo `gpt-6-luna` informó 1,607 tokens en total entre ambas consultas. Se prueban también los contadores ausentes o inválidos y la diferencia entre saldo agotado y límites temporales. Las comprobaciones no sustituyen la evaluación más amplia de respuestas del último bloque ni validan todavía un despliegue en Vercel.
 
-## Siguientes bloques acordados
+## Bloque 3 — Tutor de teoría y explicación del algoritmo
 
-1. Integrar el chat con la interfaz y con la fórmula, interpretación, entorno y resultado calculado. Asociar el historial al ejercicio y evitar explicaciones de resultados anteriores. El evaluador determina el resultado y el modelo lo explica.
-2. Probar respuestas reales con el material y los ejercicios, corregir problemas, verificar la interfaz y completar la entrega y el despliegue.
+**Tutor del curso** abre un panel amplio antes del ejercicio, con dos pestañas confirmadas por el usuario. Conserva colores y tipografías de la pizarra. No usa una barra lateral estrecha ni un área de conversación con desplazamiento propio.
+
+### Consultar teoría
+
+El formulario aparece arriba; la respuesta más reciente se lee debajo con texto de 16px y una medida máxima de 72ch. Las consultas anteriores quedan en un historial desplegable, de la más reciente a la más antigua. Se muestra el texto del modelo mediante textContent, sin ejecutar HTML. Los errores mantienen el borrador y la última respuesta correcta para poder reintentar manualmente.
+
+Esta pestaña responde conceptos de los temas 01–14. El servidor intercepta solicitudes explícitas de evaluación y fórmulas concretas reconocibles antes de llamar a OpenAI; devuelve estado solo_teoria, consumo cero y una indicación para usar el evaluador. El endpoint no acepta adjuntar datos del ejercicio. Las instrucciones del modelo también restringen su función a conceptos, sin resolver ejercicios, obtener valores de verdad, testigos o contraejemplos, ni completar demostraciones o sustituciones concretas.
+
+Ese filtro reconoce patrones y las instrucciones orientan al modelo: no son una garantía absoluta ante cualquier petición redactada en lenguaje natural. Un chat generativo puede producir una respuesta incorrecta o intentar resolver una pregunta que no reconoció el filtro. Sus respuestas no se incorporan al resultado oficial de la aplicación. La garantía de la pestaña del ejercicio es estructural: no utiliza el modelo.
+
+Las orientaciones distinguen entre pedir evaluar y preguntar por un resultado. Por ejemplo, «¿Por qué la evaluación de la fórmula es falsa?» remite directamente a **Entender mi resultado** y recuerda evaluar primero si todavía no se hizo. Se reconocen variantes con y sin tildes, mayúsculas y peticiones de explicar el resultado. Estas respuestas son fijas, no solicitan pegar la interpretación en el chat y no consumen OpenAI. Las preguntas conceptuales generales sobre valores de verdad o reglas de evaluación siguen permitidas.
+
+### Entender mi resultado
+
+Esta pestaña utiliza exclusivamente el objeto resultado que ya produjo el evaluador en el navegador. No llama a OpenAI, no necesita clave ni servidor y no recalcula la fórmula. Si todavía no existe un resultado vigente, indica que hay que evaluar primero y ofrece volver a la fórmula.
+
+Las plantillas de explicación presentan el valor de verdad, la regla general, la razón exacta del algoritmo, el entorno y el testigo o contraejemplo disponible. El título distingue el resultado de toda la fórmula del valor del paso que se está explorando. Solo se afirma comprobación completa cuando el algoritmo lo indica.
+
+Se puede abrir cada subpaso y volver al anterior. Sus hijos se paginan de ocho en ocho, de modo que una evaluación grande no crea otro árbol completo en el DOM. No se cortan fórmulas ni se inventan casos omitidos: la evaluación puede devolver únicamente un testigo o un contraejemplo decisivo. El navegador sigue usando los límites habituales del evaluador; ya no existe el adaptador de contexto con una segunda evaluación de 2,000 pasos.
+
+### Conservación del contenido
+
+- Alternar entre las dos pestañas conserva la conversación, el borrador y el paso del resultado que se está leyendo.
+- Editar la fórmula, interpretación o entorno invalida únicamente la explicación del resultado, como lo hace el evaluador. La conversación de teoría permanece.
+- Una consulta de teoría puede terminar mientras está abierta la pestaña del resultado. Se guarda la respuesta sin cambiar la pestaña ni robar el foco.
+- Abrir/cerrar el tutor y navegar entre secciones conserva el contenido. Solo Borrar conversación o recargar elimina los mensajes teóricos; borrar no elimina el borrador.
+- Se conservan hasta diez intercambios en memoria y se envían hasta dos intercambios completos dentro de 6,000 bytes. No se usa localStorage ni una base de datos.
+
+Los roles del historial deben alternarse user/assistant. Borrar o cancelar descarta respuestas tardías, incluso si ya llegaron las cabeceras. Cancelar una petición ya enviada no garantiza que el proveedor deje de generar o cobrarla.
+
+### Accesibilidad y consumo
+
+Las pestañas usan roles tablist/tab/tabpanel, estado seleccionado y foco móvil; las flechas, Inicio y Fin permiten alternarlas con teclado. Escape cierra el tutor y devuelve el foco al botón de apertura. Ctrl+Enter dentro de Consultar teoría envía la consulta; fuera del tutor sigue evaluando la fórmula. Los campos tienen etiquetas y contador, y los errores y estados de carga se anuncian.
+
+No se hacen consultas al abrir, alternar pestañas, editar o explorar un paso. La explicación local no consume créditos. Las consultas de teoría conservan los límites de una petición en curso y seis por minuto por instancia. Los tokens siguen disponibles en la respuesta del endpoint y en la herramienta de terminal; no se mezclan con el resultado matemático.
+
+### Verificación
+
+Pasan 288 pruebas automatizadas: semántica existente, contratos, rechazo del contexto, filtro de alcance, orientación directa para preguntas sobre resultados, selección de evidencia, lectura de testigos/contraejemplos y cancelaciones. El navegador de producción verifica 23 comportamientos, incluidas las dos pestañas en 1440, 768 y 390 píxeles, el borrador, el historial, la lectura sin scroll anidado, errores, HTML como texto, foco, respuestas en segundo plano y exploración local sin llamadas de red.
+
+Las comprobaciones nuevas de interacción usan respuestas simuladas y no consumen OpenAI. La consulta real de 1,662 tokens del bloque anterior probó la arquitectura anterior, que enviaba el contexto del ejercicio; esa ruta se retiró para separar estrictamente las explicaciones locales. La corrección de todas las respuestas teóricas y un despliegue público siguen requiriendo verificación.
+
+## Siguiente bloque acordado
+
+Probar más respuestas reales con el material y los ejercicios, corregir problemas, completar la entrega y verificar el despliegue. La aplicación todavía no se ha publicado durante este bloque.
 
 ## Forma de trabajo
 

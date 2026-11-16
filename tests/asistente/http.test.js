@@ -40,9 +40,9 @@ for (const [nombre, opciones, estado] of [
   ['JSON inválido', { texto: '{' }, 400],
   ['cuerpo de Vercel inválido', { body: '{' }, 400],
   ['pregunta inválida', { texto: '{"pregunta":false}' }, 400],
-  ['tamaño declarado', { headers: { 'content-length': '9000' } }, 413],
-  ['stream grande', { texto: 'a'.repeat(9000) }, 413],
-  ['cuerpo interpretado grande', { body: { pregunta: 'a'.repeat(9000) } }, 413],
+  ['tamaño declarado', { headers: { 'content-length': '25000' } }, 413],
+  ['stream grande', { texto: 'a'.repeat(25000) }, 413],
+  ['cuerpo interpretado grande', { body: { pregunta: 'a'.repeat(25000) } }, 413],
 ]) {
   test(`rechaza ${nombre} antes de ejecutar el servicio`, async () => {
     const manejar = crearManejador(async () => { assert.fail('No debe ejecutar el servicio.'); });

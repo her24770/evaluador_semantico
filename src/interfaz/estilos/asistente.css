@@ -1,0 +1,76 @@
+.cabecera { justify-content: space-between; }
+.espacio-trabajo, #contenido { min-width: 0; }
+.asistente[hidden], .asistente [hidden] { display: none; }
+/* El tutor usa el ancho del ejercicio, sin la barra lateral de 380px. */
+.con-asistente .espacio-trabajo { display: flex; flex-direction: column; }
+.con-asistente #contenido { width: 100%; }
+.asistente { order: -1; width: 100%; min-width: 0; margin-block: 24px 8px; padding: 28px 32px; background: var(--panel); border-radius: var(--radio); color: var(--tiza); scroll-margin-top: 20px; }
+.asistente-cabecera { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.asistente h2 { margin: 0; font: 400 27px/1.4 var(--manuscrita); }
+.tutor-pestanas { display: flex; gap: 32px; margin-top: 22px; border-bottom: 1px solid var(--linea); }
+.tutor-pestanas button { position: relative; display: grid; gap: 4px; min-height: 64px; padding: 10px 0 14px; border: 0; background: transparent; color: var(--tiza-suave); text-align: left; font-size: 16px; }
+.tutor-pestanas small { color: var(--tiza-suave); font-size: 12px; font-weight: 400; }
+.tutor-pestanas button[aria-selected='true'] { color: var(--tiza); font-weight: 600; }
+.tutor-pestanas button[aria-selected='true']::after { position: absolute; content: ''; inset: auto 0 -1px; height: 1px; background: var(--amarillo); }
+.tutor-pestanas button:hover { color: var(--tiza); }
+.tutor-descripcion { max-width: 72ch; margin: 22px 0; font-size: 15px; line-height: 1.7; color: var(--tiza-suave); }
+.asistente-formulario { max-width: 880px; }
+.asistente-formulario > label { margin-bottom: 0; font-size: 16px; }
+.asistente textarea { display: block; font-size: 16px; line-height: 1.6; min-height: 88px; max-height: 240px; margin-top: 10px; caret-color: var(--amarillo); }
+.asistente-envio { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 12px; }
+#chat-caracteres { color: var(--tiza-suave); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.asistente-nota { margin: 8px 0 0; color: var(--tiza-suave); font-size: 12px; line-height: 1.7; }
+#chat-privacidad { max-width: 88ch; }
+#chat-estado:empty { display: none; }
+.asistente-error { margin: 12px 0 0; color: var(--coral); font-size: 14px; line-height: 1.7; }
+.asistente-mensajes { margin-top: 28px; overflow-wrap: anywhere; }
+.asistente-vacio { max-width: 72ch; margin: 0; padding-top: 20px; border-top: 1px solid var(--linea); color: var(--tiza-suave); font-size: 14px; line-height: 1.8; }
+.tutor-intercambio { padding-block: 24px 0; border-top: 1px solid var(--linea); }
+.tutor-intercambio h3 { margin: 16px 0 12px; font-size: 18px; font-weight: 600; }
+.tutor-consulta { max-width: 72ch; margin: 0; color: var(--tiza-suave); font-size: 14px; line-height: 1.8; }
+.tutor-respuesta { max-width: 72ch; margin: 0 0 16px; font-size: 16px; line-height: 1.85; white-space: pre-wrap; }
+.tutor-historial { margin-top: 28px; }
+.tutor-historial > summary { min-height: 44px; padding-block: 10px; font-size: 14px; }
+.tutor-historial .tutor-intercambio { padding-bottom: 16px; }
+.tutor-pie { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 20px; }
+.tutor-pie .enlace { flex: none; min-height: 44px; }
+.tutor-pie .asistente-nota { margin: 0; }
+.asistente-formula { margin: 0; font: 400 18px/1.8 var(--mono); overflow-wrap: anywhere; }
+.tutor-sin-resultado { padding-block: 12px; }
+.tutor-sin-resultado h3, .tutor-paso-cabecera h3 { font-size: 20px; font-weight: 600; }
+.tutor-sin-resultado p { max-width: 64ch; margin-block: 12px 20px; line-height: 1.8; }
+.tutor-resultado-resumen { padding-bottom: 20px; border-bottom: 1px solid var(--linea); }
+.tutor-resultado-resumen > p:last-child { margin: 8px 0 0; font-size: 16px; }
+.tutor-paso-cabecera { display: flex; gap: 20px; justify-content: space-between; align-items: center; margin-top: 24px; }
+.tutor-paso-cabecera .enlace { min-height: 44px; }
+.tutor-regla { max-width: 72ch; margin-block: 12px 20px; font-size: 16px; line-height: 1.8; }
+.tutor-paso { padding: 20px 24px; border-radius: var(--radio-control); background: var(--pizarra); }
+.tutor-paso > p { max-width: 72ch; margin-bottom: 12px; line-height: 1.8; overflow-wrap: anywhere; }
+.tutor-paso > p:last-child { margin: 0; }
+.tutor-subpasos-titulo { margin: 24px 0 0; font-size: 16px; font-weight: 600; }
+.tutor-subpasos { margin: 12px 0 0; padding: 0; list-style: none; }
+.tutor-subpasos li { border-bottom: 1px solid var(--linea); }
+.tutor-subpasos button { display: grid; grid-template-columns: minmax(0, 1fr) 100px; gap: 4px 16px; width: 100%; min-height: 76px; padding: 14px 0; border: 0; background: transparent; color: var(--tiza); font-size: 14px; text-align: left; }
+.tutor-subpasos button > :nth-child(even) { text-align: right; }
+.tutor-subpasos .mono { overflow-wrap: anywhere; }
+.tutor-subpasos .asistente-nota { margin: 0; }
+.tutor-ver-paso { color: var(--amarillo); text-decoration: underline; text-underline-offset: 4px; }
+.tutor-subpasos button:hover .tutor-ver-paso { color: var(--tiza); }
+.tutor-paginacion { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.tutor-origen { margin-top: 24px; }
+.asistente ::selection { background: var(--amarillo); color: var(--pizarra); }
+@media (max-width: 650px) {
+  .cabecera { flex-wrap: wrap; gap: 12px; }
+  #abrir-asistente { margin-left: auto; }
+  .asistente { padding: 20px 18px; scroll-margin-top: 12px; }
+  .asistente h2 { font-size: 24px; }
+  .asistente-cabecera .boton { padding-inline: 12px; }
+  .tutor-pestanas { gap: 20px; }
+  .tutor-pestanas button { flex: 1; min-width: 0; font-size: 14px; }
+  .tutor-descripcion { font-size: 14px; }
+  .tutor-pie { flex-direction: column; align-items: start; gap: 8px; }
+  .tutor-paso { padding: 16px; }
+  .tutor-paso-cabecera { flex-wrap: wrap; gap: 8px; }
+  .asistente-formula { font-size: 16px; }
+  .tutor-subpasos button { grid-template-columns: minmax(0, 1fr) 88px; gap: 4px 12px; }
+}

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { cargarCorpus } from '../../src/asistente/cargar-corpus.js';
 import { crearBuscador } from '../../src/asistente/busqueda.js';
 import { crearServicioAsistente, prepararEvidencia, validarConsulta, MAX_EVIDENCIA_BYTES, SIN_EVIDENCIA } from '../../src/asistente/servicio.js';
+import { EXPLICAR_RESULTADO } from '../../src/asistente/alcance.js';
 
 const corpus = await cargarCorpus();
 const noLlamar = async () => { assert.fail('Esta consulta no debe consumir la API.'); };
@@ -73,4 +74,43 @@ test('mantiene el corpus íntegro mientras excluye portadas y objetivos de las p
   assert.ok(seleccion.length > 0);
   assert.ok(seleccion.every(({ fragmento }) => fragmento.paginas[0] !== 1 && fragmento.titulo !== 'Objetivos'));
   assert.equal(corpus.length, 293);
+});
+
+test('las solicitudes de evaluación se remiten al algoritmo sin llamar a la API', async () => {
+  const responder = await crearServicioAsistente({ env: {}, corpus, fetchImpl: noLlamar });
+  for (const pregunta of ['Evalúa esta fórmula', 'Resuelve el ejercicio', '¿Por qué dio falso?', '∀x P(x)', 'Dime el testigo', 'Dominio: 1,2; P(x)']) {
+    const resultado = await responder({ pregunta });
+    assert.equal(resultado.estado, 'solo_teoria', pregunta);
+    assert.equal(resultado.consumo.total, 0);
+    assert.match(resultado.respuesta, /Entender mi resultado/);
+  }
+});
+
+test('el endpoint no admite adjuntar el ejercicio por fuera de la interfaz', async () => {
+  const responder = await crearServicioAsistente({ env: {}, corpus, fetchImpl: noLlamar });
+  await assert.rejects(responder({ pregunta: '¿Qué es una variable?', contexto: { formula: 'P(x)' } }), { codigo: 'consulta_invalida' });
+});
+
+test('la pregunta reportada recibe una orientación directa sin generar teoría ni consumir OpenAI', async () => {
+  const responder = await crearServicioAsistente({ env: {}, corpus, fetchImpl: noLlamar });
+  const resultado = await responder({ pregunta: 'Por qué la evaluación de la fórmula es falsa?',
+    historial: [{ role: 'user', content: '¿Qué es una interpretación?' }, { role: 'assistant', content: 'Una explicación previa.' }] });
+  assert.equal(resultado.estado, 'solo_teoria');
+  assert.equal(resultado.respuesta, EXPLICAR_RESULTADO);
+  assert.equal(resultado.modelo, null);
+  assert.deepEqual(resultado.temas, []);
+  assert.equal(resultado.consumo.total, 0);
+});
+
+test('recupera el tema del historial en una pregunta de seguimiento corta', async () => {
+  let entrada;
+  const responder = await crearServicioAsistente({ env: { OPENAI_API_KEY: 'prueba' }, corpus,
+    fetchImpl: async (_url, opciones) => {
+      entrada = JSON.parse(JSON.parse(opciones.body).messages[1].content);
+      return Response.json({ choices: [{ finish_reason: 'stop', message: { content: 'Explicación.' } }] });
+    } });
+  const historial = [{ role: 'user', content: '¿Qué es una variable libre?' }, { role: 'assistant', content: 'Una explicación anterior.' }];
+  await responder({ pregunta: '¿Un ejemplo?', historial });
+  assert.deepEqual(entrada.historial, historial);
+  assert.ok(entrada.fragmentos.length > 0);
 });

@@ -1,7 +1,7 @@
 import { ErrorAsistente } from './error.js';
 import { validarConsulta } from './servicio.js';
 
-const MAX_CUERPO_BYTES = 8192;
+import { MAX_CUERPO_BYTES } from './contrato.js';
 
 function enviar(res, estado, datos) {
   res.statusCode = estado;
