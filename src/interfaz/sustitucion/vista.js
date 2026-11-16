@@ -1,15 +1,18 @@
 /**
- * Panel "Sustitución φ[t/x]" (tema 08) de la vista Fórmula.
- * La lógica está en src/sintaxis/sustitucion.js; aquí solo se muestra.
+ * Panel de sustitución φ[t/x] de la vista Fórmula.
+ * Sustituir cambia solo las apariciones libres de x por el término t.
+ * Si una variable de t quedaría ligada, se muestra el renombre que evita
+ * esa captura. El cálculo está en src/sintaxis/sustitucion.js.
  */
 import { aCadena, terminoACadena, prepararSustitucion, ErrorLogico } from '../../sintaxis/index.js';
 import { escapar, erroresHTML } from '../componentes/comunes.js';
 
+/** Crea los campos de variable y término y el espacio para explicar el resultado. */
 export function panelSustitucionHTML(estado, revision) {
   const { variable, termino } = estado.sustitucion;
   return `<section class="panel sustitucion-panel" aria-labelledby="sustitucion-titulo">
     <h2 id="sustitucion-titulo" class="titulo-tiza">Sustitución φ[t/x]</h2>
-    <p class="ayuda">Cambia cada aparición <strong>libre</strong> de la variable x por el término t. Si alguna variable de t quedaría atrapada por un cuantificador, primero se renombra la variable ligada (tema 08).</p>
+    <p class="ayuda">Cambia cada aparición <strong>libre</strong> de la variable x por el término t. Si alguna variable de t quedaría atrapada por un cuantificador, primero se renombra la variable ligada.</p>
     <div class="sustitucion-campos">
       <label for="sustitucion-variable">Variable x<input id="sustitucion-variable" class="mono" data-sustitucion="variable" value="${escapar(variable)}" placeholder="x" spellcheck="false" autocomplete="off"></label>
       <label for="sustitucion-termino">Término t<input id="sustitucion-termino" class="mono" data-sustitucion="termino" value="${escapar(termino)}" placeholder="f(y)" spellcheck="false" autocomplete="off"></label>
@@ -18,7 +21,13 @@ export function panelSustitucionHTML(estado, revision) {
   </section>`;
 }
 
-/** Calcula la sustitución con lo que hay en pantalla; null si no se puede. */
+/**
+ * Pide a sintaxis la sustitución con los campos actuales, sin cambiar la fórmula.
+ * @param {object} estado  contiene sustitucion.variable y sustitucion.termino
+ * @param {object} revision  contiene la fórmula analizada y su firma
+ * @returns {object|null} resultado de prepararSustitucion, {error} si hay un error lógico,
+ *   o null si falta la fórmula, la variable o el término
+ */
 export function calcularSustitucion(estado, revision) {
   const { variable, termino } = estado.sustitucion;
   if (!revision.ast || !variable.trim() || !termino.trim()) return null;
@@ -30,6 +39,7 @@ export function calcularSustitucion(estado, revision) {
   }
 }
 
+/** Muestra reemplazos, posibles capturas y renombres, y permite usar el resultado como nueva fórmula. */
 export function resultadoSustitucionHTML(estado, revision) {
   if (!revision.ast) return '<p class="ayuda">Escribe una fórmula bien formada para hacer una sustitución.</p>';
   const { variable, termino } = estado.sustitucion;

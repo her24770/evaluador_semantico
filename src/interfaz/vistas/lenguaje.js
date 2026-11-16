@@ -1,3 +1,8 @@
+/**
+ * Vista para declarar los símbolos del lenguaje y su aridad.
+ * La firma indica qué nombres son constantes, funciones o predicados y cuántos
+ * argumentos reciben. Aquí se construyen los campos; sintaxis valida las declaraciones.
+ */
 import { escapar, panel, erroresHTML } from '../componentes/comunes.js';
 
 // Las constantes se declaran solo con nombre; para sintaxis y semántica son funciones de aridad 0.
@@ -16,6 +21,7 @@ const TIPOS = {
   },
 };
 
+/** Dibuja una lista editable de símbolos; las constantes solo piden nombre. */
 function declaraciones(lista, tipo) {
   const t = TIPOS[tipo];
   const conAridad = t.aridadMinima !== undefined;
@@ -28,6 +34,7 @@ function declaraciones(lista, tipo) {
     <button type="button" class="boton secundario" data-action="agregar-simbolo" data-tipo="${tipo}">+ Añadir ${t.singular}</button>`;
 }
 
+/** Resume la firma validada: constantes por nombre y funciones o predicados como nombre/aridad. */
 export function firmaHTML(revision) {
   if (revision.errores.lenguaje.length) return '<p class="ayuda">Corrige la declaración para construir la firma.</p>';
   const simbolos = [...revision.firma.funciones];
@@ -38,6 +45,7 @@ export function firmaHTML(revision) {
     <p class="etiqueta">PREDICADOS</p><p class="expresion">${lista([...revision.firma.predicados])}</p>`;
 }
 
+/** Devuelve la vista completa con declaraciones, errores y resumen de la firma. */
 export function lenguaje(estado, revision) {
   return `<div class="rejilla-configuracion"><div class="columna-configuracion">
     ${panel('Constantes', declaraciones(estado.constantes, 'constantes'))}

@@ -1,3 +1,8 @@
+/**
+ * Carga de las fuentes locales antes de mostrar la aplicación.
+ * Se espera como máximo dos segundos por defecto; si llegan después, se
+ * actualiza su estado igualmente. Así la carga no bloquea el uso de la página.
+ */
 const FUENTES = [
   '400 16px "DM Sans"',
   '500 16px "DM Sans"',
@@ -9,6 +14,7 @@ const FUENTES = [
   '400 16px "Architects Daughter"',
 ];
 
+/** Pide todas las familias y pesos; devuelve false si falta alguno o la API no está disponible. */
 async function cargarFuentes(fuentes) {
   if (!fuentes?.load) return false;
   try {
@@ -22,6 +28,7 @@ async function cargarFuentes(fuentes) {
   }
 }
 
+/** Espera la carga o el plazo indicado, y limpia el temporizador en cualquiera de los casos. */
 async function esperarCarga(carga, tiempoMaximo) {
   let temporizador;
   try {
@@ -36,10 +43,21 @@ async function esperarCarga(carga, tiempoMaximo) {
   }
 }
 
+/**
+ * Espera las fuentes sin modificar la página.
+ * @param {{fuentes?: FontFaceSet, tiempoMaximo?: number}} [opciones]  plazo en milisegundos
+ * @returns {Promise<boolean>} true si todas las fuentes cargaron dentro del plazo
+ */
 export async function esperarFuentes({ fuentes = globalThis.document?.fonts, tiempoMaximo = 2000 } = {}) {
   return esperarCarga(cargarFuentes(fuentes), tiempoMaximo);
 }
 
+/**
+ * Marca la carga en data-fuentes y habilita la aplicación al terminar la espera.
+ * @param {HTMLElement} app  contenedor inicialmente marcado con aria-busy e inert
+ * @param {{fuentes?: FontFaceSet, tiempoMaximo?: number}} [opciones]
+ * @returns {Promise<void>}
+ */
 export async function prepararFuentes(app, { fuentes = app.ownerDocument.fonts, tiempoMaximo = 2000 } = {}) {
   const raiz = app.ownerDocument.documentElement;
   raiz.dataset.fuentes = 'cargando';

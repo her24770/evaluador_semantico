@@ -1,3 +1,9 @@
+/**
+ * Modelo visual del árbol sintáctico (AST): las partes que forman la fórmula.
+ * Añade identificadores, relaciones padre-hijo y coordenadas para dibujarlo.
+ * También enlaza cada aparición ligada con su cuantificador más cercano;
+ * no calcula valores de verdad ni cambia la fórmula original.
+ */
 import { aCadena, terminoACadena, recorrerOcurrencias, variablesLibres, variablesLigadas } from '../../sintaxis/index.js';
 
 const TIPOS = {
@@ -10,6 +16,7 @@ const TIPOS = {
   var: ['', 'Variable', 'termino'],
 };
 
+/** Traduce cada forma del AST a una lista de hijos, conservando su orden de lectura. */
 function hijosDe(ast) {
   switch (ast.tipo) {
     case 'paratodo': case 'existe': return [ast.cuerpo];
@@ -21,9 +28,12 @@ function hijosDe(ast) {
   }
 }
 
-/** Adaptación visual del AST, sin modificarlo ni volver a analizar el texto.
+/**
+ * Adaptación visual del AST, sin modificarlo ni volver a analizar el texto.
  * Los ID representan rutas, no nombres ni posiciones del texto: dos ∀x son distintos.
- * Se conserva la referencia ast para futuras anotaciones de evaluación.
+ * Se conserva la referencia ast para reconocer cada aparición del árbol original.
+ * @param {object} ast  fórmula analizada por sintaxis
+ * @returns {{raizId: string, nodos: object[], porId: Map, porAST: Map}}
  */
 export function crearArbol(ast) {
   const nodos = [];
@@ -63,7 +73,14 @@ export function crearArbol(ast) {
   return { raizId: raiz.id, nodos, porId, porAST };
 }
 
-/** Consulta perezosa: no imprime ni analiza todas las subfórmulas al dibujar. */
+/**
+ * Calcula los detalles solo al consultar un nodo, en lugar de hacerlo para todo el árbol.
+ * Distingue las variables de la expresión aislada de las de la fórmula completa:
+ * en ∀x P(x), x es libre al mirar solo P(x), pero está ligada en la fórmula completa.
+ * @param {object} arbol  resultado de crearArbol
+ * @param {string} id  ruta del nodo
+ * @returns {object|null} texto, variables y enlaces de alcance; null si no existe el nodo
+ */
 export function detalleNodo(arbol, id) {
   const nodo = arbol.porId.get(id);
   if (!nodo) return null;
@@ -86,8 +103,12 @@ export function detalleNodo(arbol, id) {
   };
 }
 
-/** Cada subárbol recibe su propia franja horizontal: no hay solapamientos.
+/**
+ * Cada subárbol recibe su propia franja horizontal: no hay solapamientos.
  * Las anchuras dependen de la etiqueta completa, incluso con nombres largos.
+ * Primero mide desde las hojas y después coloca desde la raíz hacia abajo.
+ * @param {object} arbol  resultado de crearArbol
+ * @returns {{cajas: Map, ancho: number, alto: number}} medidas y coordenadas en píxeles
  */
 export function distribuirArbol(arbol) {
   const cajas = new Map();

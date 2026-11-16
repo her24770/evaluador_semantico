@@ -1,4 +1,16 @@
-/** Lee secciones de Markdown sin depender de Node, Vite ni un proveedor de IA. */
+/**
+ * Lectura de las transcripciones Markdown usadas como material del asistente.
+ * Cada sección declara páginas, palabras clave y tipo de contenido.
+ * Se conserva su referencia de origen para poder localizarla después.
+ */
+
+/**
+ * Separa un documento en fragmentos a partir de encabezados de nivel 2.
+ * @param {object} fuente  entrada del inventario, con identificador y total de páginas
+ * @param {string} markdown  documento que declara esa fuente y sus secciones
+ * @returns {object[]} fragmentos con id, título, contenido, tipo, palabras clave, páginas y fuente
+ * @throws {Error} si falta información, se repite una sección o las páginas son inválidas
+ */
 export function leerDocumento(fuente, markdown) {
   const texto = markdown.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
   const [cabecera, ...secciones] = texto.split(/^## /m);
@@ -24,6 +36,10 @@ export function leerDocumento(fuente, markdown) {
   });
 }
 
+/**
+ * Expande páginas y rangos, elimina repeticiones y los ordena.
+ *   leerPaginas('2, 4-6', 10) → [2, 4, 5, 6]
+ */
 function leerPaginas(referencia, total) {
   const paginas = new Set();
   for (const parte of referencia.split(',')) {

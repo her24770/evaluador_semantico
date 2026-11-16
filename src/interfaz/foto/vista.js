@@ -7,6 +7,7 @@ import { simbolosNoDeclarados } from '../../sintaxis/index.js';
 import { escapar, erroresHTML, SIMBOLOS } from '../componentes/comunes.js';
 import { revisarEntrada } from '../modelo.js';
 
+/** Dibuja la carga, la miniatura y la lectura según el estado actual de la foto. */
 export function panelFotoHTML(estado) {
   const foto = estado.foto;
   return `<section class="panel foto-panel" id="foto-panel" aria-labelledby="foto-titulo">
@@ -26,6 +27,7 @@ export function panelFotoHTML(estado) {
   </section>`;
 }
 
+/** Elige entre espera, error, lectura pendiente o editor para corregir la transcripción. */
 function lecturaHTML(estado) {
   const foto = estado.foto;
   if (foto.fase === 'leyendo') {
@@ -51,6 +53,7 @@ function lecturaHTML(estado) {
     </div>`;
 }
 
+/** Muestra símbolos dudosos y el texto original cuando difiere del borrador corregido o normalizado. */
 function dudasHTML(foto) {
   const cambio = foto.leida && foto.leida.trim() !== foto.texto.trim()
     ? `<p class="ayuda">Texto original de la lectura: <span class="mono">${escapar(foto.leida)}</span></p>` : '';
@@ -61,6 +64,9 @@ function dudasHTML(foto) {
 
 /**
  * ¿Se puede operar lo leído? Usa las mismas revisiones que el editor principal.
+ * Revisa una copia del estado con el texto de la foto: todavía no cambia la fórmula.
+ * Distingue símbolos sin declarar, errores de sintaxis y datos pendientes para evaluar.
+ * @param {object} estado  ejercicio con el borrador en foto.texto
  * @returns {string} HTML
  */
 export function revisionFotoHTML(estado) {

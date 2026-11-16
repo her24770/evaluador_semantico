@@ -1,3 +1,8 @@
+/**
+ * Vista de edición de la fórmula y de las herramientas que ayudan a construirla.
+ * Reúne editor, símbolos, lectura de foto, árbol sintáctico y sustitución.
+ * La revisión viene de modelo.js: esta vista muestra lo que el analizador entendió.
+ */
 import { aCadena, aCadenaCompleta } from '../../sintaxis/index.js';
 import { escapar, erroresHTML, SIMBOLOS } from '../componentes/comunes.js';
 import { panelArbolHTML } from '../arbol/visor.js';
@@ -6,6 +11,7 @@ import { panelFotoHTML } from '../foto/vista.js';
 import { resumenInterpretacionHTML } from '../componentes/resumen.js';
 import { seccionPendiente } from '../modelo.js';
 
+/** Informa errores o muestra si la fórmula es abierta o cerrada y cómo se agruparon sus partes. */
 export function feedbackFormula(estado, revision) {
   if (revision.errores.lenguaje.length) return '<p class="ayuda">Revisa el lenguaje para analizar la fórmula.</p>';
   if (!estado.formula.trim()) return '<p class="ayuda">Escribe una fórmula para analizar su sintaxis.</p>';
@@ -15,6 +21,7 @@ export function feedbackFormula(estado, revision) {
     <details class="lectura"><summary>Cómo se leyó la fórmula</summary><p class="mono">${escapar(aCadena(revision.ast))}</p><p class="ayuda">Con todos los paréntesis:</p><p class="mono">${escapar(aCadenaCompleta(revision.ast))}</p></details>`;
 }
 
+/** Ajusta la acción principal según los datos pendientes o una evaluación que ya está en curso. */
 export function accionesFormulaHTML(revision, ocupado = false) {
   if (ocupado) return '<button type="button" class="boton secundario" data-action="navegar" data-seccion="resultados">Ver evaluación en curso →</button>';
   const pendiente = seccionPendiente(revision);
@@ -23,6 +30,7 @@ export function accionesFormulaHTML(revision, ocupado = false) {
   return `<button type="button" class="boton primario" data-action="evaluar" ${!revision.ast ? 'disabled' : ''}>${texto} <span aria-hidden="true">→</span></button><span class="atajo">Ctrl / ⌘ + Enter</span>`;
 }
 
+/** Devuelve la pantalla de fórmula; sus eventos se atienden desde el controlador de la interfaz. */
 export function formula(estado, revision, ocupado = false) {
   return `<div class="rejilla-formula">
     <section class="panel panel-formula"><label for="formula" class="etiqueta">Fórmula</label>

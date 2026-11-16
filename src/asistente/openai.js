@@ -1,9 +1,21 @@
+/**
+ * Cliente de OpenAI utilizado por el tutor y la lectura de fotos en el servidor.
+ * Envía los mensajes, limita la espera y comprueba que la respuesta esté completa.
+ * Los fallos del proveedor se traducen a errores propios con mensajes para la interfaz.
+ * La clave se usa aquí y no se entrega al navegador.
+ */
 import { ErrorAsistente } from './error.js';
 
 const URL_OPENAI = 'https://api.openai.com/v1/chat/completions';
 export const MODELO_PREDETERMINADO = 'gpt-6-luna';
 
-/** Una petición, sin reintentos automáticos que consuman la cuota. Solo se ejecuta en Node. */
+/**
+ * Crea un generador que hace una petición por llamada, sin reintentos automáticos.
+ * @param {{clave: string, modelo?: string, fetchImpl?: Function, esperaMs?: number}} opciones
+ *   esperaMs es el plazo de la petición en milisegundos
+ * @returns {Function} generar(mensajes) devuelve Promise<{texto, modelo, consumo}>
+ * @throws {ErrorAsistente} al crear el cliente si falta la clave; al generar si falla la consulta
+ */
 export function crearClienteOpenAI({ clave, modelo = MODELO_PREDETERMINADO, fetchImpl = fetch, esperaMs = 20000 }) {
   if (typeof clave !== 'string' || !clave.trim() || clave.trim() === 'tu_clave') {
     throw new ErrorAsistente('configuracion', 'Falta configurar OPENAI_API_KEY en el servidor.', 503);
@@ -62,7 +74,12 @@ export function crearClienteOpenAI({ clave, modelo = MODELO_PREDETERMINADO, fetc
   };
 }
 
-/** Se devuelven solo contadores válidos. null significa que el proveedor no informó consumo. */
+/**
+ * Adapta los contadores del proveedor a los nombres usados por la aplicación.
+ * Comprueba que entrada + salida = total y que los detalles no superen sus totales.
+ * @param {object|undefined} uso
+ * @returns {object|null} contadores válidos; null si falta el consumo o es inconsistente
+ */
 function leerConsumo(uso) {
   const entero = (valor) => Number.isSafeInteger(valor) && valor >= 0;
   if (!uso || ![uso.prompt_tokens, uso.completion_tokens, uso.total_tokens].every(entero)

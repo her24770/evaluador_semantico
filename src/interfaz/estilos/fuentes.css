@@ -1,3 +1,8 @@
+/*
+ * Familias y pesos incluidos en la aplicación como archivos WOFF2 locales.
+ * font-display: swap permite mostrar texto con la fuente alternativa mientras
+ * llega la elegida. carga-fuentes.js coordina la espera inicial de estas familias.
+ */
 @font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 400; font-display: swap; src: url('../assets/fuentes/dm-sans-400.woff2') format('woff2'); }
 @font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 500; font-display: swap; src: url('../assets/fuentes/dm-sans-500.woff2') format('woff2'); }
 @font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 600; font-display: swap; src: url('../assets/fuentes/dm-sans-600.woff2') format('woff2'); }

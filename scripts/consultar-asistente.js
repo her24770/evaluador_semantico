@@ -1,3 +1,8 @@
+/**
+ * Consulta de teoría desde la terminal al servidor local ya iniciado.
+ *   npm run consultar:asistente -- "¿Qué es una variable libre?"
+ * Muestra la respuesta y los datos de la consulta; ante un fallo, termina con código 1.
+ */
 const pregunta = process.argv.slice(2).join(' ').trim();
 if (!pregunta) {
   console.log('Uso: npm run consultar:asistente -- "¿Qué es una variable libre?"');

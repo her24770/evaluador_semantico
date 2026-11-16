@@ -1,7 +1,14 @@
+/**
+ * Panel del tutor con dos formas de ayuda.
+ * «Consultar teoría» usa la conversación con el servidor. «Entender mi resultado»
+ * recorre localmente los pasos del evaluador. El panel permanece montado al
+ * navegar entre secciones para conservar la conversación hasta recargar la página.
+ */
 import { crearConversacion } from '../asistente/conversacion.js';
 import { MAX_PREGUNTA } from '../asistente/contrato.js';
 import { montarExplicacionTutor } from './explicacion-tutor.js';
 
+/** Devuelve la estructura del tutor, inicialmente oculta, con pestañas y formulario accesibles. */
 export function asistenteHTML() {
   return `<aside id="asistente" class="asistente" aria-labelledby="asistente-titulo" hidden>
     <header class="asistente-cabecera"><h2 id="asistente-titulo" tabindex="-1">Tutor del curso</h2>
@@ -34,6 +41,11 @@ export function asistenteHTML() {
   </aside>`;
 }
 
+/**
+ * Conecta el panel, el chat y el explorador del resultado con sus eventos.
+ * @param {HTMLElement} raiz  aplicación que ya contiene asistenteHTML y el botón para abrirlo
+ * @returns {{actualizar: Function}} actualizar recibe el estado y entrega solo el resultado al explorador local
+ */
 export function montarAsistente(raiz) {
   const $ = (selector) => raiz.querySelector(selector);
   const panel = $('#asistente');
@@ -43,10 +55,12 @@ export function montarAsistente(raiz) {
   const explicacion = montarExplicacionTutor($('#tutor-explicacion'));
   let mensajesPintados = '';
   let vista = 'teoria';
+  // Una cancelación o borrado cambia el turno para que un envío anterior no vacíe el nuevo borrador.
   let turno = 0;
   const conversacion = crearConversacion({ alCambiar: pintar });
 
   function texto(selector, valor) { $(selector).textContent = valor; }
+  /** Crea una consulta y su respuesta usando textContent; el texto recibido no se interpreta como HTML. */
   function intercambio(usuario, respuesta) {
     const articulo = document.createElement('article');
     articulo.className = 'tutor-intercambio';
@@ -64,6 +78,7 @@ export function montarAsistente(raiz) {
     }
     return articulo;
   }
+  /** Muestra la respuesta reciente, guarda las anteriores en el historial y actualiza los controles. */
   function pintar(estado = conversacion.estado) {
     const contenido = JSON.stringify(estado.mensajes);
     if (contenido !== mensajesPintados) {
@@ -96,6 +111,7 @@ export function montarAsistente(raiz) {
     texto('#chat-error', estado.error);
     $('#chat-error').hidden = !estado.error;
   }
+  /** Sincroniza pestañas, panel visible y foco sin borrar consultas ni detener el chat. */
   function cambiarVista(nueva, enfocar = false) {
     if (!['teoria', 'resultado'].includes(nueva)) return;
     vista = nueva;
@@ -107,6 +123,7 @@ export function montarAsistente(raiz) {
       if (activo && enfocar) tab.focus();
     }
   }
+  /** Oculta el tutor y devuelve el foco al botón que lo abre. */
   function cerrar() {
     panel.hidden = true;
     $('.pizarra').classList.remove('con-asistente');

@@ -1,3 +1,8 @@
+/*
+ * Valores compartidos de color, tipografía, bordes y separación.
+ * Las demás hojas los consultan con var(...), de modo que un cambio aquí
+ * se aplica a todos los elementos que usan esa variable.
+ */
 :root {
   color-scheme: dark;
   --madera: #71503a;
@@ -13,6 +18,7 @@
   --coral: #e19b81;
   --borde: #759389;
   --linea: #527366;
+  /* Texto general, títulos manuscritos y notación con caracteres de ancho fijo. */
   --fuente: 'DM Sans', sans-serif;
   --manuscrita: 'Architects Daughter', cursive;
   --mono: 'IBM Plex Mono', monospace;

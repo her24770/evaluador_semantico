@@ -1,5 +1,11 @@
+/**
+ * Asignación de elementos del dominio a las variables libres de la fórmula.
+ * Las variables ligadas reciben su valor de los cuantificadores al evaluar.
+ * Si no hay libres, la fórmula es cerrada y basta el entorno vacío l = [].
+ */
 import { escapar, opciones, panel, erroresHTML, propio } from '../componentes/comunes.js';
 
+/** Devuelve selectores para las variables libres y un resumen de libres y ligadas. */
 export function entorno(estado, revision) {
   const conjunto = (variables) => !revision.ast ? '…' : variables.length ? `{ ${escapar(variables.join(', '))} }` : '∅';
   let contenido;

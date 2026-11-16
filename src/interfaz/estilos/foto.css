@@ -1,3 +1,8 @@
+/*
+ * Panel de foto: carga de archivo, miniatura, texto leído y dudas de transcripción.
+ * La clase .ampliada coloca la imagen sobre el editor y permite verla más grande.
+ * En pantallas pequeñas ambos contenidos se organizan en una sola columna.
+ */
 .foto-panel { grid-column: 1 / -1; }
 .foto-panel > .titulo-tiza { margin-bottom: 8px; }
 .foto-panel > .ayuda:first-of-type { margin-bottom: 16px; }

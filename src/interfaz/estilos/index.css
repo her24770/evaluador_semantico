@@ -1,3 +1,9 @@
+/*
+ * Entrada de los estilos de la interfaz.
+ * Primero carga fuentes, variables y reglas comunes; después, los estilos de
+ * cada herramienta y sus ajustes por tamaño de pantalla. El orden importa:
+ * con igual especificidad, la regla posterior puede reemplazar a la anterior.
+ */
 @import './fuentes.css';
 @import './tokens.css';
 @import './base.css';

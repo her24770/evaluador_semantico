@@ -1,5 +1,11 @@
+/**
+ * Estructura fija de la aplicación: cabecera, navegación, área de trabajo y tutor.
+ * index.js reemplaza el contenido de #vista al navegar; el tutor permanece montado
+ * para conservar la conversación. Los atributos data-* identifican las acciones.
+ */
 import { asistenteHTML } from '../asistente.js';
 
+/** Orden y nombres de las pantallas que usa la navegación. */
 export const SECCIONES = [
   { id: 'lenguaje', nombre: 'Lenguaje' },
   { id: 'interpretacion', nombre: 'Interpretación' },
@@ -8,6 +14,7 @@ export const SECCIONES = [
   { id: 'resultados', nombre: 'Resultados' },
 ];
 
+/** Devuelve el HTML inicial, con destinos para el foco y avisos para lectores de pantalla. */
 export function estructura() {
   return `<a class="saltar" href="#contenido">Saltar al contenido</a>
     <div class="pizarra">

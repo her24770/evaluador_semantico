@@ -1,4 +1,9 @@
-/** Recuperación léxica local. La puntuación ordena coincidencias; no certifica una respuesta. */
+/**
+ * Búsqueda local de fragmentos por palabras y símbolos de la pregunta.
+ * Se quitan palabras comunes y se unifican variantes como «libres» y «libre».
+ * Las coincidencias en títulos y palabras clave pesan más; también se da más
+ * peso a términos poco frecuentes. La puntuación ordena fragmentos, no certifica una respuesta.
+ */
 const VACIAS = new Set(('a al algo ante aqui asi aun bajo cada como con cual cuales cuando de del desde '
   + 'diferencia dime donde el ella ellas ellos en entre era es esa esas ese esos esta estas este esto estos '
   + 'estoy explicar explicame favor fue ha hasta hay la las le les lo los me mi mis mismo mucha muy '
@@ -32,6 +37,13 @@ const ALIAS = new Map(Object.entries({
   evaluar: 'evaluacion', evalua: 'evaluacion', evaluan: 'evaluacion',
 }));
 
+/**
+ * Convierte texto o notación lógica en términos comparables.
+ * Quitar tildes sirve solo para buscar: el contenido original conserva su escritura.
+ *   terminosDeBusqueda('¿Variables libres en ∀x?') → ['variable', 'libre', 'universal']
+ * @param {string} texto
+ * @returns {string[]} términos normalizados; pueden repetirse
+ */
 export function terminosDeBusqueda(texto) {
   // Se protegen antes de NFD: ≠ se descompone como = más una barra combinante.
   const normalizado = texto.replace(/[∀∃¬∧∨→↔=≠⊨⊢⊥↦⟼⇒⇔⊭⊬∈∉]/gu, (simbolo) => ` ${SIMBOLOS.get(simbolo)} `)
@@ -43,6 +55,12 @@ export function terminosDeBusqueda(texto) {
     .map((termino) => ALIAS.get(termino) ?? termino);
 }
 
+/**
+ * Prepara una vez los términos de los documentos y devuelve una función de búsqueda.
+ * @param {object[]} fragmentos  secciones obtenidas al cargar el corpus
+ * @returns {Function} buscar(pregunta, {limite = 5, fuente, tipo}) devuelve fragmentos
+ *   con puntuacion y coincidencias, ordenados de mayor a menor puntuación
+ */
 export function crearBuscador(fragmentos) {
   const documentos = fragmentos.map((fragmento) => ({
     fragmento,
@@ -57,6 +75,7 @@ export function crearBuscador(fragmentos) {
     for (const termino of doc.terminos) frecuencias.set(termino, (frecuencias.get(termino) ?? 0) + 1);
   }
 
+  /** Filtra por fuente o tipo si se indican; admite de 1 a 10 resultados. */
   return function buscar(pregunta, { limite = 5, fuente, tipo } = {}) {
     if (typeof pregunta !== 'string') throw new TypeError('La pregunta debe ser texto.');
     if (!Number.isSafeInteger(limite) || limite < 1 || limite > 10) {
@@ -71,11 +90,13 @@ export function crearBuscador(fragmentos) {
       if (!coincidencias.length) continue;
       let puntuacion = 0;
       for (const termino of coincidencias) {
+        // Un término presente en pocos documentos ayuda más a distinguir el fragmento adecuado.
         const peso = Math.log(1 + documentos.length / frecuencias.get(termino));
         const apariciones = doc.cuerpo.filter((palabra) => palabra === termino).length;
         puntuacion += peso * ((doc.titulo.has(termino) ? 5 / Math.sqrt(doc.titulo.size) : 0)
           + (doc.claves.has(termino) ? 3 : 0) + Math.log1p(apariciones));
       }
+      // Favorece los fragmentos que cubren más términos distintos de la pregunta.
       puntuacion *= coincidencias.length / consulta.length;
       resultados.push({ ...doc.fragmento, puntuacion, coincidencias });
     }
