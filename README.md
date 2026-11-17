@@ -218,3 +218,9 @@ Para controlar el uso de recursos, la interfaz admite hasta **4096 entradas por 
 ## Créditos
 
 El contenido teórico utilizado en este proyecto fue proporcionado por **Mario Castillo**, maestro del curso de **Lógica Matemática** de la **Universidad del Valle de Guatemala**, como material para la clase.
+
+## Referencias de inteligencia artificial
+
+Anthropic. (2026). *Claude* [Herramienta de inteligencia artificial]. https://claude.ai/
+
+OpenAI. (2026). *ChatGPT* [Herramienta de inteligencia artificial]. https://chatgpt.com/
